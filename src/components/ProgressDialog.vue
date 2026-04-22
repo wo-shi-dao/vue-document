@@ -11,8 +11,9 @@
     <div class="progress-content">
       <!-- 第一部分：图标和标题 -->
       <div class="progress-header">
-        <el-icon class="progress-icon" :size="48">
-          <Loading />
+
+        <el-icon :size="40" color="#409eff">
+          <component :is="currentIcon" />
         </el-icon>
         <h2 class="progress-title">{{ title }}</h2>
         <p class="progress-description">{{ description }}</p>
@@ -51,7 +52,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { Loading, CircleCheck } from "@element-plus/icons-vue";
+import { Loading, CircleCheck, DataAnalysis, DocumentAdd, Tools, Upload } from "@element-plus/icons-vue";
 
 const props = defineProps({
   modelValue: {
@@ -82,6 +83,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  iconType: {
+    type: String,
+    default: 'add'
+  }
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -90,6 +95,17 @@ const visible = computed({
   get: () => props.modelValue,
   set: (val) => emit("update:modelValue", val),
 });
+
+const currentIcon = computed(() => {
+  const iconMap = {
+    init: Tools,           // 初始化
+    add: DocumentAdd,   // 生成文档
+    parse: DataAnalysis,      // 解析数据（默认）
+    import: Upload      // 失败/异常
+  }
+  return iconMap[props.iconType] || DocumentAdd
+})
+
 </script>
 
 <style scoped>
@@ -99,7 +115,7 @@ const visible = computed({
 
 .progress-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .progress-icon {
@@ -117,7 +133,7 @@ const visible = computed({
 }
 
 .progress-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
   margin: 15px 0 10px;
   color: #303133;
@@ -127,6 +143,7 @@ const visible = computed({
   font-size: 14px;
   color: #909399;
   margin: 0;
+  padding-top: 10px;
 }
 
 .progress-bar-section {
