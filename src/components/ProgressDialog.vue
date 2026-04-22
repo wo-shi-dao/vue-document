@@ -1,8 +1,8 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="title"
     width="500px"
+    align-center
     :close-on-click-modal="false"
     :close-on-press-escape="false"
     :show-close="false"
@@ -32,10 +32,18 @@
 
       <!-- 第三部分：底部提示 -->
       <div class="progress-footer">
-        <el-icon class="loading-icon">
-          <Loading />
-        </el-icon>
-        <span>{{ footerText }}</span>
+        <div v-if="percentage === 100" class="finish-icon">
+          <el-icon>
+            <CircleCheck />
+          </el-icon>
+          <span>{{ footerText }}</span>
+        </div>
+        <div v-else class="loading-div">
+          <el-icon class="loading-icon">
+            <Loading />
+          </el-icon>
+          <span>{{ footerText }}</span>
+        </div>
       </div>
     </div>
   </el-dialog>
@@ -43,7 +51,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { Loading } from "@element-plus/icons-vue";
+import { Loading, CircleCheck } from "@element-plus/icons-vue";
 
 const props = defineProps({
   modelValue: {
@@ -125,6 +133,10 @@ const visible = computed({
   margin-bottom: 30px;
 }
 
+.progress-bar-section :deep(.el-progress__text) {
+  min-width: 30px;
+}
+
 .progress-label {
   display: flex;
   justify-content: space-between;
@@ -142,7 +154,19 @@ const visible = computed({
   color: #909399;
 }
 
+.loading-div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .loading-icon {
   animation: rotate 1s linear infinite;
+}
+.finish-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #67c23a;
 }
 </style>
