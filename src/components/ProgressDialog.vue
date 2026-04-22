@@ -22,7 +22,6 @@
       <div class="progress-bar-section">
         <div class="progress-label">
           <span>{{ progressText }}</span>
-          <span>{{ percentage }}%</span>
         </div>
         <el-progress
           :percentage="percentage"
@@ -43,46 +42,46 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
+import { ref, computed } from "vue";
+import { Loading } from "@element-plus/icons-vue";
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   title: {
     type: String,
-    default: '正在处理'
+    default: "正在处理",
   },
   description: {
     type: String,
-    default: '请稍候...'
+    default: "请稍候...",
   },
   progressText: {
     type: String,
-    default: '处理进度'
+    default: "处理进度",
   },
   footerText: {
     type: String,
-    default: '正在处理...'
+    default: "正在处理...",
   },
   percentage: {
     type: Number,
-    default: 0
+    default: 0,
   },
   status: {
     type: String,
-    default: ''
-  }
-})
+    default: "",
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(["update:modelValue"]);
 
 const visible = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
-})
+  set: (val) => emit("update:modelValue", val),
+});
 </script>
 
 <style scoped>
