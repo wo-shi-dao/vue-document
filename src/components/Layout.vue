@@ -1,6 +1,11 @@
 <template>
   <div class="layout-container">
-    <el-container>
+    <el-container v-if="route?.meta?.type === 'pageOffice'">
+      <el-main class="layout-main">
+        <router-view />
+      </el-main>
+    </el-container>
+    <el-container v-else>
       <el-header class="layout-header">
         <div class="header-left">
           <h1 class="app-title">文档管理系统</h1>
@@ -20,14 +25,10 @@
           </el-dropdown>
         </div>
       </el-header>
-      
+
       <el-container>
         <el-aside width="200px" class="layout-aside">
-          <el-menu
-            :default-active="activeMenu"
-            router
-            class="side-menu"
-          >
+          <el-menu :default-active="activeMenu" router class="side-menu">
             <el-menu-item index="/document-management">
               <el-icon><Document /></el-icon>
               <span>文档管理</span>
@@ -38,7 +39,7 @@
             </el-menu-item>
           </el-menu>
         </el-aside>
-        
+
         <el-main class="layout-main">
           <router-view />
         </el-main>
@@ -48,15 +49,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { User, Document, Upload, FolderAdd } from '@element-plus/icons-vue'
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { User, Document, Upload, FolderAdd } from "@element-plus/icons-vue";
 
-const route = useRoute()
+const route = useRoute();
+console.log("route", route);
 
 const activeMenu = computed(() => {
-  return route.path
-})
+  return route.path;
+});
 </script>
 
 <style scoped>

@@ -30,35 +30,40 @@
       </el-form-item> -->
 
       <el-form-item
-        label="需求文档类型"
+        label="文档模板"
         required
         prop="type"
         :rules="[
-          { required: true, message: '请选择需求类型', trigger: 'change' },
+          { required: true, message: '请选择模板文档', trigger: 'change' },
         ]"
       >
-        <el-select
+        <el-tree-select
           v-model="formData.type"
           placeholder="请选择"
-          style="width: 100%"
-        >
-          <el-option label="IR" value="IR" />
-          <el-option label="SR" value="SR" />
-          <el-option label="AR" value="AR" />
-        </el-select>
+          :data="treeSelectData"
+          :render-after-expand="false"
+        />
       </el-form-item>
 
-      <!-- <el-form-item label="所属文件夹">
+      <el-form-item label="所属文件夹">
         <el-tree-select
           v-model="formData.parentId"
           :data="folderTreeData"
-          :props="{ label: 'name', value: 'id', children: 'children' }"
           placeholder="请选择文件夹（不选则为根目录）"
           clearable
           check-strictly
           style="width: 100%"
         />
-      </el-form-item> -->
+      </el-form-item>
+
+      <el-form-item label="需求创建时间">
+        <el-date-picker
+          v-model="formData.daterange"
+          type="daterange"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -81,17 +86,96 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  // 文件夹树形数据（用于选择所属文件夹）
-  folderTreeData: {
-    type: Array,
-    default: () => [],
-  },
   // 是否正在提交（外部控制，用于防重复提交）
   submitting: {
     type: Boolean,
     default: false,
   },
 });
+
+// 模板文档数据
+const treeSelectData = [
+  {
+    value: "1",
+    label: "需求文档",
+    children: [
+      {
+        value: "1-1",
+        label: "软件需求文档",
+        children: [
+          {
+            value: "1-1-1",
+            label: "需求说明文档.docx",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    value: "2",
+    label: "说明文档",
+    children: [
+      {
+        value: "2-1",
+        label: "功能说明文档",
+        children: [
+          {
+            value: "2-1-1",
+            label: "软件说明文档.docx",
+          },
+        ],
+      },
+      {
+        value: "2-2",
+        label: "需求说明文档",
+        children: [
+          {
+            value: "2-2-1",
+            label: "软件需求说明文档.docx",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    value: "3",
+    label: "测试用例",
+    children: [
+      {
+        value: "3-1",
+        label: "软件测试",
+        children: [
+          {
+            value: "3-1-1",
+            label: "需求测试文档.docx",
+          },
+        ],
+      },
+      {
+        value: "3-2",
+        label: "功能测试",
+        children: [
+          {
+            value: "3-2-1",
+            label: "功能测试文档.docx",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+// 文件夹目录
+const folderTreeData = [
+  {
+    value: "1",
+    label: "项目文档",
+  },
+  {
+    value: "2",
+    label: "测试报告",
+  },
+];
 
 // ---------- Emits 定义 ----------
 const emit = defineEmits([
@@ -106,6 +190,7 @@ const formData = reactive({
   name: "",
   type: "",
   parentId: null,
+  daterange: [],
 });
 
 // ---------- 方法 ----------

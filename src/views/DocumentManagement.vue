@@ -19,6 +19,10 @@
           :data="documentList"
           style="width: 100%"
           border
+          row-key="id"
+          :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+          lazy
+          :load="loadTreeChildren"
           v-loading="loading"
         >
           <el-table-column prop="name" label="文档名称" min-width="180" />
@@ -43,10 +47,18 @@
                 </el-button>
               </template>
               <template v-else>
-                <el-button link type="primary" @click="handleViewDocument(row)">
+                <el-button
+                  link
+                  type="primary"
+                  @click.prevent="open_pageoffice('/pageOffice/ReadWord')"
+                >
                   查看
                 </el-button>
-                <el-button link type="primary" @click="handleEditDocument(row)">
+                <el-button
+                  link
+                  type="primary"
+                  @click.prevent="open_pageoffice('/pageOffice/EditWord')"
+                >
                   编辑
                 </el-button>
                 <el-button
@@ -194,6 +206,8 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import ProgressDialog from "../components/ProgressDialog.vue";
+import { POBrowser } from "js-pageoffice";
+import request from "../utils/request";
 import CreateDocumentDialog from "../components/CreateDocumentDialog.vue";
 import {
   getDocumentList,
@@ -232,64 +246,93 @@ const showGenerateDialog = ref(false);
 // 生成文档提交loading
 const createDocSubmitting = ref(false);
 
-const testTreeData = ref([
+const titleText = ref("");
+
+onMounted(async () => {
+  try {
+    const response = await request({
+      url: "/index",
+      method: "get",
+    });
+    titleText.value = response;
+  } catch (error) {
+    console.error("Failed to fetch title:", error);
+  }
+
+  loadDocumentList();
+});
+
+function open_pageoffice(vue_page_url) {
+  let paramJson = {};
+  paramJson.file_id = 1;
+  paramJson.file_name = "test.docx";
+  let paramString = JSON.stringify(paramJson);
+
+  //openWindow()第三个参数用来向弹出的PageOffice浏览器（POBrowser）窗口传递参数(参数长度不限)，支持json格式字符串。
+  //此处为了方便演示，我们传递了file_id和file_name两个参数，具体以您实际开发为准。
+  POBrowser.openWindow(vue_page_url, "width=1000px;height=600px;", paramString);
+}
+
+const mockTreeData = ref([
   {
     id: "f1",
     name: "项目文档",
-    type: "IR",
-    isFolder: false,
+    isFolder: true,
     creator: "admin",
     createTime: "2025-01-01",
     modifier: "admin",
     modifyTime: "2025-01-01",
-  },
-  {
-    id: "d1",
-    name: "需求规格.docx",
-    type: "SR",
-    isFolder: false,
-    creator: "张三",
-    createTime: "2025-01-02",
-    modifier: "李四",
-    modifyTime: "2025-01-03",
-    parentId: "f1",
-  },
-  {
-    id: "d2",
-    name: "设计文档.docx",
-    type: "AR",
-    isFolder: false,
-    creator: "王五",
-    createTime: "2025-01-04",
-    modifier: "王五",
-    modifyTime: "2025-01-04",
-    parentId: "f1",
+    children: [
+      {
+        id: "d1",
+        name: "需求规格.docx",
+        type: "docx",
+        isFolder: false,
+        creator: "张三",
+        createTime: "2025-01-02",
+        modifier: "李四",
+        modifyTime: "2025-01-03",
+        parentId: "f1",
+      },
+      {
+        id: "d2",
+        name: "设计文档.docx",
+        type: "docx",
+        isFolder: false,
+        creator: "王五",
+        createTime: "2025-01-04",
+        modifier: "王五",
+        modifyTime: "2025-01-04",
+        parentId: "f1",
+      },
+    ],
   },
   {
     id: "f2",
     name: "测试报告",
-    type: "IR",
-    isFolder: false,
+    isFolder: true,
     creator: "admin",
     createTime: "2025-01-05",
     modifier: "admin",
     modifyTime: "2025-01-05",
-  },
-  {
-    id: "d3",
-    name: "测试用例.xlsx",
-    type: "SR",
-    isFolder: false,
-    creator: "赵六",
-    createTime: "2025-01-06",
-    modifier: "赵六",
-    modifyTime: "2025-01-06",
-    parentId: "f2",
+    children: [
+      {
+        id: "d3",
+        name: "测试用例.xlsx",
+        type: "xlsx",
+        isFolder: false,
+        creator: "赵六",
+        createTime: "2025-01-06",
+        modifier: "赵六",
+        modifyTime: "2025-01-06",
+        parentId: "f2",
+      },
+    ],
   },
   {
     id: "d4",
     name: "会议记录.pdf",
-    type: "AR",
+    type: "pdf",
     isFolder: false,
     creator: "孙七",
     createTime: "2025-01-07",
@@ -298,6 +341,86 @@ const testTreeData = ref([
     parentId: null,
   },
 ]);
+
+const testData = [
+  {
+    id: "f1",
+    name: "项目文档",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-01",
+    modifier: "admin",
+    modifyTime: "2025-01-01",
+    children: [
+      {
+        id: "d3",
+        name: "需求说明文档.docx",
+        type: "docx",
+        isFolder: false,
+        creator: "李四",
+        createTime: "2026-04-23",
+        modifier: "李四",
+        modifyTime: "2026-04-23",
+        parentId: "f1",
+      },
+      {
+        id: "d1",
+        name: "需求规格.docx",
+        type: "docx",
+        isFolder: false,
+        creator: "张三",
+        createTime: "2025-01-02",
+        modifier: "李四",
+        modifyTime: "2025-01-03",
+        parentId: "f1",
+      },
+      {
+        id: "d2",
+        name: "设计文档.docx",
+        type: "docx",
+        isFolder: false,
+        creator: "王五",
+        createTime: "2025-01-04",
+        modifier: "王五",
+        modifyTime: "2025-01-04",
+        parentId: "f1",
+      },
+    ],
+  },
+  {
+    id: "f2",
+    name: "测试报告",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-05",
+    modifier: "admin",
+    modifyTime: "2025-01-05",
+    children: [
+      {
+        id: "d3",
+        name: "测试用例.xlsx",
+        type: "xlsx",
+        isFolder: false,
+        creator: "赵六",
+        createTime: "2025-01-06",
+        modifier: "赵六",
+        modifyTime: "2025-01-06",
+        parentId: "f2",
+      },
+    ],
+  },
+  {
+    id: "d4",
+    name: "会议记录.pdf",
+    type: "pdf",
+    isFolder: false,
+    creator: "孙七",
+    createTime: "2025-01-07",
+    modifier: "孙七",
+    modifyTime: "2025-01-07",
+    parentId: null,
+  },
+];
 
 // 新增文件夹
 const showAddFolderDialog = ref(false);
@@ -327,10 +450,6 @@ const progressPercentage = ref(0);
 const progressStatus = ref("");
 const progressFooterText = ref("正在生成文档...");
 
-onMounted(() => {
-  loadDocumentList();
-});
-
 //获取文档列表
 const loadDocumentList = async () => {
   loading.value = true;
@@ -340,13 +459,20 @@ const loadDocumentList = async () => {
     //   page: pagination.current,
     //   size: pagination.size,
     // });
-    documentList.value = testTreeData.value || [];
-    pagination.total = testTreeData.value.length || 0;
+    documentList.value = mockTreeData.value || [];
+    pagination.total = 4 || 0;
   } catch (error) {
     ElMessage.error("获取文档列表失败");
   } finally {
     loading.value = false;
   }
+};
+
+// 树形表格懒加载（如果不需要懒加载可移除 lazy 和 load 属性）
+const loadTreeChildren = (row, treeNode, resolve) => {
+  setTimeout(() => {
+    resolve(row.children || []);
+  }, 100);
 };
 
 const handleSearch = () => {
@@ -494,7 +620,9 @@ const handleGenerateDocument = async (form) => {
 
       setTimeout(() => {
         showProgress.value = false;
+        mockTreeData.value = testData;
         ElMessage.success("文档生成成功");
+        open_pageoffice("/pageOffice/EditWord");
         loadDocumentList();
       }, 1000);
     } else {
@@ -522,7 +650,7 @@ const handleSearchHistory = async () => {
 .document-management-container {
   padding: 20px;
   background-color: #fff;
-  min-height: 100vh;
+  min-height: calc(100vh - 60px);
 }
 
 .header {
