@@ -103,7 +103,9 @@
                 >{{ isExtend ? "收起" : "展开" }}</el-button
               >
               <el-button @click="reset(ruleFormRef)">重置</el-button>
-              <el-button @click="search(ruleFormRef)">搜索 </el-button>
+              <el-button type="primary" @click="search(ruleFormRef)"
+                >搜索
+              </el-button>
             </div>
           </el-col>
         </el-row>

@@ -122,18 +122,20 @@
       <!-- 历史记录Tab -->
       <el-tab-pane label="历史记录" name="history">
         <BaseDataSearchForm
-          :formItems="formItems"
+          :formItems="historyFormItems"
           :searchForm="searchForm"
           @search="handleSearch"
           span="3"
         />
 
         <el-table :data="mockHistoryList" style="width: 100%" border>
-          <el-table-column prop="time" label="时间" width="180" />
-          <el-table-column prop="operator" label="操作人" width="120" />
-          <el-table-column prop="type" label="操作类型" width="120" />
-          <el-table-column prop="detail" label="详情" min-width="200" />
-          <el-table-column label="状态" width="120">
+          <el-table-column prop="name" label="文档名称" min-width="180" />
+          <el-table-column prop="creator" label="创建人" min-width="120" />
+          <el-table-column prop="createTime" label="创建时间" min-width="180" />
+          <el-table-column prop="type" label="文档类型" min-width="120" />
+          <el-table-column prop="modifier" label="修改人" min-width="120" />
+          <el-table-column prop="modifyTime" label="修改时间" min-width="180" />
+          <el-table-column label="状态" min-width="120">
             <template #default="{ row }">
               <el-tag v-if="row.status === 'success'" type="success"
                 >成功</el-tag
@@ -147,6 +149,16 @@
             </template>
           </el-table-column>
         </el-table>
+
+        <el-pagination
+          v-model:current-page="pagination.current"
+          v-model:page-size="pagination.size"
+          :total="3"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handlePageSizeChange"
+          @current-change="handlePageChange"
+        />
       </el-tab-pane>
     </el-tabs>
 
@@ -254,6 +266,26 @@ const formItems = ref([
     componentType: "el-input",
     field: "companyName",
     label: "文档类型",
+  },
+  {
+    componentType: "el-date-picker",
+    field: "creationDateRange",
+    label: "创建时间",
+    componentProps: {
+      type: "daterange",
+      "start-placeholder": "开始时间",
+      "end-placeholder": "结束时间",
+      format: "YYYY-MM-DD",
+      "value-format": "YYYY-MM-DD",
+    },
+  },
+]);
+
+const historyFormItems = ref([
+  {
+    componentType: "el-input",
+    field: "companyName",
+    label: "创建人",
   },
   {
     componentType: "el-date-picker",
@@ -482,7 +514,44 @@ const testData = [
   },
 ];
 
-const mockHistoryList = ref([]);
+const mockHistoryList = ref([
+  {
+    id: "d3",
+    name: "设计文档.docx",
+    type: "IR",
+    isFolder: false,
+    creator: "赵六",
+    createTime: "2025-01-06",
+    modifier: "赵六",
+    modifyTime: "2025-01-06",
+    parentId: "f2",
+    status: "success",
+  },
+  {
+    id: "d3",
+    name: "需求文档.docx",
+    type: "docx",
+    isFolder: false,
+    creator: "孙七",
+    createTime: "2025-01-06",
+    modifier: "孙七",
+    modifyTime: "2025-01-06",
+    parentId: "f2",
+    status: "processing",
+  },
+  {
+    id: "d3",
+    name: "测试用例.docx",
+    type: "docx",
+    isFolder: false,
+    creator: "王五",
+    createTime: "2025-01-06",
+    modifier: "王五",
+    modifyTime: "2025-01-06",
+    parentId: "f2",
+    status: "failed",
+  },
+]);
 
 // 新增文件夹
 const showAddFolderDialog = ref(false);
@@ -522,7 +591,7 @@ const loadDocumentList = async () => {
     //   size: pagination.size,
     // });
     documentList.value = mockTreeData.value || [];
-    pagination.total = 4 || 0;
+    pagination.total = 7 || 0;
   } catch (error) {
     ElMessage.error("获取文档列表失败");
   } finally {

@@ -59,7 +59,7 @@ html, body {
   border-color: #5e7ce0;
  }
 
- .el-button:hover {
+ .el-button--primary:hover {
   border-color: #7693f5;
   background: #7693f5;
  }
