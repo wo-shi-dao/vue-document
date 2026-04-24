@@ -63,3 +63,8 @@ html, body {
   border-color: #7693f5;
   background: #7693f5;
  }
+ 
+ .el-button--primary.is-disabled, .el-button--primary.is-disabled:hover {
+  border-color: #B4C6F5;
+  background: #B4C6F5;
+ }

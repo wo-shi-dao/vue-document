@@ -20,7 +20,7 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
       />
-      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button @click="handleSearch">搜索</el-button>
       <el-button @click="handleReset">重置</el-button>
     </div> -->
 
@@ -121,29 +121,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from "vue";
-import { ElMessage } from "element-plus";
-import {
-  UploadFilled,
-  CircleCheck,
-  InfoFilled,
-  CircleClose,
-  Close,
-  Loading,
-  QuestionFilled,
-} from "@element-plus/icons-vue";
-import ProgressDialog from "../components/ProgressDialog.vue";
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ElMessage } from 'element-plus';
+import { UploadFilled, CircleCheck, InfoFilled, CircleClose, Close, Loading, QuestionFilled } from '@element-plus/icons-vue';
+import ProgressDialog from '../components/ProgressDialog.vue';
 import BaseDataSearchForm from "@/components/BasicDataSearchForm/index.vue";
-import DocumentImportDialog from "../components/DocumentImportDialog.vue";
-import {
-  getImportHistory,
-  parseImportFiles,
-  getImportDetail,
-  confirmImport,
-  cancelImport,
-  submitParseFile,
-  getParseProgress,
-} from "../api/document";
+import DocumentImportDialog from '../components/DocumentImportDialog.vue';
+import { getImportHistory, parseImportFiles, getImportDetail, confirmImport, cancelImport, submitParseFile, getParseProgress } from '../api/document';
 import { POBrowser } from "js-pageoffice";
 
 const loading = ref(false);
@@ -159,7 +143,7 @@ const filters = reactive({
 const pagination = reactive({
   current: 1,
   size: 10,
-  total: 0,
+  total: 0
 });
 
 const searchForm = ref({});
@@ -223,112 +207,20 @@ const mockTmpTableData = ref([
   // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 5, arCount: 0, status: '待确认' },
   // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 19, arCount: 15, status: '待确认' },
   // { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', irCount: 0, srCount: 11, arCount: 5, status: '已取消' }
-  {
-    importTime: "2024-07-25 16:30:00",
-    condition: "需求文档 v2.1.0",
-    fileCount: "3",
-    status: "成功",
-    importType: "IR",
-    count: 25,
-  },
-  {
-    importTime: "2024-07-23 09:20:00",
-    condition: "用户需求初稿",
-    fileCount: "4",
-    status: "处理中",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-22 14:45:00",
-    condition: "测试用例文档",
-    fileCount: "5",
-    status: "部分成功",
-    importType: "IR",
-    count: 10,
-  },
-  {
-    importTime: "2024-07-21 16:10:00",
-    condition: "接口文档异常版本",
-    fileCount: "2",
-    status: "失败",
-    message: "文件解析异常，内容为空。",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "需求汇总文档",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "性能优化整改说明",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "系统配置变更单",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "角色权限梳理文档",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "权限管理清单",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "后端接口规范文档",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "迭代优化需求清单",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-20 11:30:00",
-    condition: "需求汇总文档V1",
-    fileCount: "1",
-    status: "待确认",
-    importType: "IR",
-    count: 0,
-  },
-  {
-    importTime: "2024-07-19 15:20:00",
-    condition: "旧版需求文档",
-    fileCount: "2",
-    status: "已取消",
-    importType: "IR",
-    count: 0,
-  },
-]);
+  { importTime: '2024-07-25 16:30:00', condition: '需求文档 v2.1.0', fileCount: '3', status: '成功', importType: 'IR', count: 25 },
+  { importTime: '2024-07-23 09:20:00', condition: '用户需求初稿', fileCount: '4', status: '处理中', importType: 'IR', count: 0 },
+  { importTime: '2024-07-22 14:45:00', condition: '测试用例文档', fileCount: '5', status: '部分成功', importType: 'IR', count: 10 },
+  { importTime: '2024-07-21 16:10:00', condition: '接口文档异常版本', fileCount: '2', status: '失败', message: '文件解析异常，内容为空。', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '性能优化整改说明', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '系统配置变更单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '角色权限梳理文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '权限管理清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '后端接口规范文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '迭代优化需求清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档V1', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', status: '已取消', importType: 'IR', count: 0 }
+])
 // --------------后续清理--------------
 
 onMounted(() => {
@@ -353,7 +245,6 @@ onUnmounted(() => {
 });
 
 const loadImportHistory = async () => {
-  console.info("111");
   loading.value = true;
 
   // --------------TODO 后续清理--------------
@@ -482,14 +373,7 @@ const handleStartImport = async (params) => {
     for (let i = 0; i < params.fileList.length; i++) {
       const ele = params.fileList[i];
 
-      let tmp = {
-        importTime: formatTime(),
-        condition: ele.file.name,
-        importType: ele.fileType,
-        fileCount: "1",
-        count: 15,
-        status: "成功",
-      };
+      let tmp = { importTime: formatTime(), condition: ele.file.name, importType: ele.fileType, fileCount: '1', count: 15, status: '成功' };
       addData.value.push(tmp);
     }
 
@@ -603,24 +487,18 @@ const mockProgressLoop = (taskId, docId) => {
 
 // 进度完成后执行
 const afterParseComplete = (taskId, docId) => {
+
   // 打开预览界面
-  openPageOfficePreview({
-    fileId: 123,
-    fileName: "测试文档.docx",
-    taskId: taskId,
-    docId: docId,
-  });
-};
+  openPageOfficePreview({ fileId: 123, fileName: '测试文档.docx', taskId: taskId, docId: docId });
+
+}
+
 
 // 打开 PageOffice 预览页面
 const openPageOfficePreview = (fileParams) => {
   const paramString = JSON.stringify(fileParams);
-  POBrowser.openWindow(
-    "/pageOffice/parseResultPreview",
-    "fullscreen=yes",
-    paramString,
-  );
-};
+  POBrowser.openWindow('/pageOffice/parseResultPreview', 'fullscreen=yes', paramString);
+}
 
 const setConfirmProgress = () => {
   showProgress.value = true;
@@ -720,11 +598,8 @@ const handleViewDetail = async (row) => {
   // POBrowser.openWindow('/pageOffice/parseResultPreview', "width=1000px;height=600px;", paramString);
 
   // const paramString = JSON.stringify({})
-  POBrowser.openWindow(
-    "/pageOffice/parseResultPreview",
-    "fullscreen=yes",
-    paramString,
-  );
+  POBrowser.openWindow('/pageOffice/parseResultPreview', 'fullscreen=yes', paramString);
+
 
   // try {
   //   const res = await getImportDetail(row.id)
