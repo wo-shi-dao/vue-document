@@ -70,7 +70,7 @@ const activeMenu = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #409eff;
+  background-color: #444b61;
   color: white;
   padding: 0 20px;
 }

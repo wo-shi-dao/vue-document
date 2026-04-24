@@ -35,3 +35,31 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* 表格样式 */
+.el-table thead {
+  color: #191919;
+  font-size: 12px;
+}
+
+.el-table .cell {
+  display: flex;
+  align-items: center;
+  color: #191919;
+ }
+
+ .el-table {
+  border-radius: 10px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+ }
+
+ /* 按钮样式 */
+ .el-button--primary {
+  background: #5e7ce0;
+  border-color: #5e7ce0;
+ }
+
+ .el-button:hover {
+  border-color: #7693f5;
+  background: #7693f5;
+ }

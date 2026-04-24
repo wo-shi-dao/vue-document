@@ -2,7 +2,7 @@
   <div class="document-management-container">
     <!-- 标题区域 -->
     <div class="header">
-      <h1 class="title">文档管理</h1>
+      <h3 class="title">文档管理</h3>
       <el-button type="primary" @click="handleShowGenerateDialog">
         生成文档
       </el-button>
@@ -13,7 +13,19 @@
       <!-- 文档内容Tab -->
       <el-tab-pane label="文档内容" name="content">
         <!-- 筛选条件 -->
-
+        <BaseDataSearchForm
+          :formItems="formItems"
+          :searchForm="searchForm"
+          @search="handleSearch"
+          span="3"
+        />
+        <el-button
+          type="primary"
+          class="create-button"
+          @click="handleCreateFolder"
+        >
+          新建文件夹
+        </el-button>
         <!-- 文档表格 -->
         <el-table
           :data="documentList"
@@ -25,8 +37,16 @@
           :load="loadTreeChildren"
           v-loading="loading"
         >
-          <el-table-column prop="name" label="文档名称" min-width="180" />
-          <el-table-column prop="type" label="需求文档类型" width="160" />
+          <el-table-column prop="name" label="文档名称" min-width="180">
+            <template #default="{ row }">
+              <el-icon v-if="row?.isFolder" class="folder-icon"
+                ><Folder
+              /></el-icon>
+              <el-icon v-else class="document-icon"><Document /></el-icon>
+              <span class="name-text">{{ row.name }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="type" label="文档类型" width="160" />
           <el-table-column prop="creator" label="创建人" width="120" />
           <el-table-column prop="createTime" label="创建时间" width="180" />
           <el-table-column prop="modifier" label="修改人" width="120" />
@@ -101,20 +121,14 @@
 
       <!-- 历史记录Tab -->
       <el-tab-pane label="历史记录" name="history">
-        <div class="filter-section">
-          <el-date-picker
-            v-model="historyFilters.timeRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-          />
-          <el-button type="primary" @click="handleSearchHistory"
-            >搜索</el-button
-          >
-        </div>
+        <BaseDataSearchForm
+          :formItems="formItems"
+          :searchForm="searchForm"
+          @search="handleSearch"
+          span="3"
+        />
 
-        <el-table :data="historyList" style="width: 100%" border>
+        <el-table :data="mockHistoryList" style="width: 100%" border>
           <el-table-column prop="time" label="时间" width="180" />
           <el-table-column prop="operator" label="操作人" width="120" />
           <el-table-column prop="type" label="操作类型" width="120" />
@@ -208,6 +222,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import ProgressDialog from "../components/ProgressDialog.vue";
 import { POBrowser } from "js-pageoffice";
 import request from "../utils/request";
+import { Document, Folder } from "@element-plus/icons-vue";
+import BaseDataSearchForm from "@/components/BasicDataSearchForm/index.vue";
 import CreateDocumentDialog from "../components/CreateDocumentDialog.vue";
 import {
   getDocumentList,
@@ -230,6 +246,28 @@ const filters = reactive({
   name: "",
   type: "",
 });
+
+const searchForm = ref({});
+// 表单项
+const formItems = ref([
+  {
+    componentType: "el-input",
+    field: "companyName",
+    label: "文档类型",
+  },
+  {
+    componentType: "el-date-picker",
+    field: "creationDateRange",
+    label: "创建时间",
+    componentProps: {
+      type: "daterange",
+      "start-placeholder": "开始时间",
+      "end-placeholder": "结束时间",
+      format: "YYYY-MM-DD",
+      "value-format": "YYYY-MM-DD",
+    },
+  },
+]);
 
 const historyFilters = reactive({
   timeRange: null,
@@ -318,8 +356,8 @@ const mockTreeData = ref([
     children: [
       {
         id: "d3",
-        name: "测试用例.xlsx",
-        type: "xlsx",
+        name: "测试用例.docx",
+        type: "docx",
         isFolder: false,
         creator: "赵六",
         createTime: "2025-01-06",
@@ -331,8 +369,30 @@ const mockTreeData = ref([
   },
   {
     id: "d4",
-    name: "会议记录.pdf",
-    type: "pdf",
+    name: "会议记录.docx",
+    type: "docx",
+    isFolder: false,
+    creator: "孙七",
+    createTime: "2025-01-07",
+    modifier: "孙七",
+    modifyTime: "2025-01-07",
+    parentId: null,
+  },
+  {
+    id: "d4",
+    name: "测试记录.docx",
+    type: "docx",
+    isFolder: false,
+    creator: "孙七",
+    createTime: "2025-01-07",
+    modifier: "孙七",
+    modifyTime: "2025-01-07",
+    parentId: null,
+  },
+  {
+    id: "d4",
+    name: "软件需求.docx",
+    type: "docx",
     isFolder: false,
     creator: "孙七",
     createTime: "2025-01-07",
@@ -422,6 +482,8 @@ const testData = [
   },
 ];
 
+const mockHistoryList = ref([]);
+
 // 新增文件夹
 const showAddFolderDialog = ref(false);
 const folderFormRef = ref(null);
@@ -479,6 +541,8 @@ const handleSearch = () => {
   pagination.current = 1;
   loadDocumentList();
 };
+
+const handleCreateFolder = () => {};
 
 const handleResetFilters = () => {
   filters.name = "";
@@ -638,8 +702,8 @@ const handleGenerateDocument = async (form) => {
 
 const handleSearchHistory = async () => {
   try {
-    const res = await getHistoryList(historyFilters);
-    historyList.value = res.data || [];
+    // const res = await getHistoryList(historyFilters);
+    historyList.value = mockHistoryList.value || [];
   } catch (error) {
     ElMessage.error("获取历史记录失败");
   }
@@ -649,7 +713,7 @@ const handleSearchHistory = async () => {
 <style scoped>
 .document-management-container {
   padding: 20px;
-  background-color: #fff;
+  background-color: #f3f3f3;
   min-height: calc(100vh - 60px);
 }
 
@@ -669,6 +733,8 @@ const handleSearchHistory = async () => {
 
 .content-tabs {
   margin-top: 20px;
+  /* background: #f3f3f3;
+  height: calc(100vh - 150px); */
 }
 
 .filter-section {
@@ -681,5 +747,20 @@ const handleSearchHistory = async () => {
 .el-pagination {
   margin-top: 20px;
   justify-content: flex-end;
+}
+
+.name-text {
+  margin-left: 4px;
+}
+
+.folder-icon {
+  color: #eab308;
+}
+.document-icon {
+  color: #0077b8;
+}
+
+.create-button {
+  margin-bottom: 16px;
 }
 </style>
