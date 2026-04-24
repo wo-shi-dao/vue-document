@@ -152,18 +152,10 @@ export function getImportDetail(id) {
 }
 
 // 确认导入
-export function confirmImport(id, onProgress) {
-  return new Promise((resolve, reject) => {
-    // 模拟进度更新
-    let progress = 0;
-    const timer = setInterval(() => {
-      progress += 10;
-      if (onProgress) onProgress(progress);
-      if (progress >= 100) {
-        clearInterval(timer);
-        resolve({ success: true, data: {} });
-      }
-    }, 200);
+export function confirmImport(id) {
+  return request({
+    url: `/confirmImport/${id}`,
+    method: "post",
   });
 }
 
@@ -174,3 +166,41 @@ export function cancelImport(id) {
     method: "post",
   });
 }
+
+// 1. 提交解析（返回 taskId）
+export function submitParseFile(data) {
+  return request({
+    url: '/document/submit-parse',
+    method: 'post',
+    data
+  })
+}
+
+// 2. 查询解析进度
+export function getParseProgress(taskId) {
+  return request({
+    url: `/document/progress/${taskId}`,
+    method: 'get'
+  })
+}
+
+// 获取文档类型（动态下拉框）
+export function getDocumentTypeList() {
+  return request({
+    url: '/import/document/types',
+    method: 'post'
+  })
+}
+
+
+// 获取文档列表
+export function getParseDetailList(params) {
+  return request({
+    url: "/document/list",
+    method: "post",
+    params,
+  });
+}
+
+
+

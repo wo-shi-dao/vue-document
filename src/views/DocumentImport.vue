@@ -14,34 +14,39 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
       />
-      <el-select v-model="filters.status" placeholder="状态" clearable>
-        <el-option label="处理中" value="processing" />
-        <el-option label="待确认" value="pending" />
-        <el-option label="成功" value="success" />
-        <el-option label="失败" value="failed" />
-        <el-option label="已取消" value="cancelled" />
-      </el-select>
       <el-button type="primary" @click="handleSearch">搜索</el-button>
-      <el-button type="primary" @click="handleShowImportDialog">导入</el-button>
+      <el-button @click="handleReset">重置</el-button>
+
+    </div>
+
+    <div class="import-btn-wrapper">
+      <el-button type="primary" @click="handleShowImportDialog" class="import-btn">导入</el-button>
     </div>
 
     <!-- 导入历史表格 -->
     <el-table :data="importList" style="width: 100%" border v-loading="loading">
       <el-table-column prop="importTime" label="导入时间" width="180" />
-      <el-table-column prop="batchNo" label="批次号" width="150" />
-      <el-table-column prop="condition" label="导入条件" width="150" />
-      <el-table-column prop="fileName" label="文件名称" min-width="200" />
-      <el-table-column prop="fileCount" label="文件数" width="80" />
-      <el-table-column prop="irCount" label="IR数量" width="80" />
-      <el-table-column prop="srCount" label="SR数量" width="80" />
-      <el-table-column prop="arCount" label="AR数量" width="80" />
-      <el-table-column label="状态" width="100">
+      <!-- <el-table-column prop="batchNo" label="批次号" width="150" /> -->
+      <el-table-column prop="condition" label="文件名称" min-width="150" />
+      <el-table-column prop="importType" label="文件类型" min-width="80" />
+      <!-- <el-table-column prop="fileName" label="文件名称" min-width="200" /> -->
+      <el-table-column prop="fileCount" label="文件数" min-width="80" />
+      <el-table-column prop="count" label="数量" min-width="80" />
+
+      <el-table-column label="状态" width="120">
         <template #default="{ row }">
-          <el-tag v-if="row.status === 'processing'" type="warning">处理中</el-tag>
-          <el-tag v-else-if="row.status === 'pending'" type="info">待确认</el-tag>
-          <el-tag v-else-if="row.status === 'success'" type="success">成功</el-tag>
-          <el-tag v-else-if="row.status === 'failed'" type="danger">失败</el-tag>
-          <el-tag v-else-if="row.status === 'cancelled'" type="info">已取消</el-tag>
+          <el-tag
+          :type="getStatusTagType(row.status)"
+          effect="light"
+          :class="{ 'status-clickable': row.status === '失败' }"
+          class="status-tag"
+            @click="handleStatusClick(row)"
+          >
+             <el-icon class="status-icon" :loading="row.status === '处理中'">
+              <component :is="getStatusIcon(row.status)" />
+            </el-icon>
+            {{ row.status }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="120">
@@ -50,8 +55,10 @@
             v-if="row.status !== 'processing' && row.status !== 'failed' && row.status !== 'cancelled'"
             link
             type="primary"
-            @click="handleViewDetail(row)"
-          >
+            @click.prevent="handleViewDetail(row)"
+            >
+            <!-- @click.prevent="handleViewDetail(row)" -->
+            <!-- @click="handleViewDetail(row)" -->
             查看详情
           </el-button>
         </template>
@@ -70,70 +77,14 @@
     />
 
     <!-- 导入文档弹窗 -->
-    <el-dialog
-      v-model="showImportDialog"
-      title="导入文档"
-      width="600px"
-    >
-      <el-upload
-        ref="uploadRef"
-        :auto-upload="false"
-        :on-change="handleFileChange"
-        :file-list="fileList"
-        accept=".doc,.docx,.xls,.xlsx,.pdf"
-        multiple
-        drag
-      >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-          将文件拖到此处，或<em>点击上传</em>
-        </div>
-        <template #tip>
-          <div class="el-upload__tip">
-            支持 .doc, .docx, .xls, .xlsx, .pdf 格式，且支持多个文件导入
-          </div>
-        </template>
-      </el-upload>
-      <template #footer>
-        <el-button @click="showImportDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleStartParse">开始解析</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 详情预览弹窗 -->
-    <el-dialog
-      v-model="showDetailDialog"
-      :title="currentDetail.fileName"
-      width="80%"
-      top="5vh"
-    >
-      <div class="detail-content">
-        <div class="detail-header">
-          <span>{{ currentDetail.fileName }}</span>
-          <div class="detail-actions" v-if="currentDetail.status === 'pending'">
-            <el-button @click="handleCancelImport">取消</el-button>
-            <el-button type="primary" @click="handleConfirmImport">确认导入</el-button>
-          </div>
-        </div>
-        <div class="detail-body">
-          <div class="document-preview">
-            <h3>文档预览区域</h3>
-            <p>此处显示文档内容预览</p>
-          </div>
-          <div class="requirement-list">
-            <h3>需求条目列表</h3>
-            <el-table :data="requirementList" border max-height="400">
-              <el-table-column prop="id" label="ID" width="80" />
-              <el-table-column prop="name" label="名称" />
-              <el-table-column prop="type" label="类型" width="100" />
-            </el-table>
-          </div>
-        </div>
-      </div>
-    </el-dialog>
+    <DocumentImportDialog 
+      v-model:show="showImportDialog" 
+      @success="handleStartImport"
+    />
 
     <!-- 进度条弹窗 -->
     <ProgressDialog
+      iconType="parse"
       v-model="showProgress"
       :title="progressTitle"
       :description="progressDescription"
@@ -142,21 +93,29 @@
       :percentage="progressPercentage"
       :status="progressStatus"
     />
+
+    <!-- 失败错误信息弹窗 -->
+    <el-dialog v-model="errorDialogVisible" title="导入失败详情" width="500px">
+      <div class="error-content">{{ errorMessage }}</div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="errorDialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { UploadFilled } from '@element-plus/icons-vue'
+import { UploadFilled, CircleCheck, InfoFilled, CircleClose, Close, Loading, QuestionFilled } from '@element-plus/icons-vue'
 import ProgressDialog from '../components/ProgressDialog.vue'
-import {
-  getImportHistory,
-  parseImportFiles,
-  getImportDetail,
-  confirmImport,
-  cancelImport
-} from '../api/document'
+import DocumentImportDialog from '../components/DocumentImportDialog.vue'
+import { getImportHistory, parseImportFiles, getImportDetail, confirmImport, cancelImport, submitParseFile, getParseProgress } from '../api/document'
+import { POBrowser } from "js-pageoffice";
+
 
 const loading = ref(false)
 const importList = ref([])
@@ -182,6 +141,8 @@ const showDetailDialog = ref(false)
 const currentDetail = ref({})
 const requirementList = ref([])
 
+const progressTimer = ref(null)
+
 // 进度条
 const showProgress = ref(false)
 const progressTitle = ref('')
@@ -191,12 +152,95 @@ const progressFooterText = ref('')
 const progressPercentage = ref(0)
 const progressStatus = ref('')
 
+// 弹窗状态
+const errorDialogVisible = ref(false)
+const errorMessage = ref('')
+
+// --------------TODO 后续清理--------------
+// 表格数据
+const mockTmpTableData = ref([
+  // { importTime: '2024-07-25 16:30:00', condition: '需求文档 v2.1.0', fileCount: '3', irCount: 25, srCount: 11, arCount: 5, status: '成功' },
+  // { importTime: '2024-07-23 09:20:00', condition: '用户需求初稿', fileCount: '4', irCount: 0, srCount: 12, arCount: 0, status: '处理中' },
+  // { importTime: '2024-07-22 14:45:00', condition: '测试用例文档', fileCount: '5', irCount: 10, srCount: 9, arCount: 0, status: '部分成功' },
+  // { importTime: '2024-07-21 16:10:00', condition: '接口文档异常版本', fileCount: '2', irCount: 0, srCount: 11, arCount: 15, status: '失败', message: '文件格式错误：仅支持 .xlsx / .docx' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 5, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 9, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 10, arCount: 8, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 16, arCount: 7, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 0, arCount: 5, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 3, arCount: 2, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 5, arCount: 0, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 19, arCount: 15, status: '待确认' },
+  // { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', irCount: 0, srCount: 11, arCount: 5, status: '已取消' }
+  { importTime: '2024-07-25 16:30:00', condition: '需求文档 v2.1.0', fileCount: '3', status: '成功', importType: 'IR', count: 25 },
+  { importTime: '2024-07-23 09:20:00', condition: '用户需求初稿', fileCount: '4', status: '处理中', importType: 'IR', count: 0 },
+  { importTime: '2024-07-22 14:45:00', condition: '测试用例文档', fileCount: '5', status: '部分成功', importType: 'IR', count: 10 },
+  { importTime: '2024-07-21 16:10:00', condition: '接口文档异常版本', fileCount: '2', status: '失败', message: '文件解析异常，内容为空。', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '性能优化整改说明', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '系统配置变更单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '角色权限梳理文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '权限管理清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '后端接口规范文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '迭代优化需求清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档V1', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
+  { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', status: '已取消', importType: 'IR', count: 0 }
+])
+// --------------后续清理--------------
+
 onMounted(() => {
   loadImportHistory()
+
+
+  window.onPageOfficeClosed = (paramJson) => {
+    console.info('回调父类方法..');
+
+    const { taskId } = JSON.parse(paramJson)
+
+    // 显示确认导入进度条
+    setConfirmProgress()
+
+    // 开始轮询
+    startConfirmProgressLoop(taskId)
+  }
+
 })
 
+
+onUnmounted(() => {
+  // 组件销毁时清理
+  window.onPageOfficeClosed = null // 销毁
+});
+
 const loadImportHistory = async () => {
+  console.info('111')
   loading.value = true
+
+
+
+  
+  // --------------TODO 后续清理--------------
+  if ("1" == "1") {
+
+    // 模拟接口延迟
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const list = mockTmpTableData.value
+    const total = mockTmpTableData.value.length
+    const start = (pagination.current - 1) * pagination.size
+    const end = start + pagination.size
+
+    // ✅ 前端分页
+    importList.value = list.slice(start, end)
+    pagination.total = total
+
+    loading.value = false
+    
+    return
+    // --------------后续清理--------------
+  }
+
+  // TODO 要改
   try {
     const res = await getImportHistory({
       ...filters,
@@ -207,8 +251,48 @@ const loadImportHistory = async () => {
     pagination.total = res.data.total || 0
   } catch (error) {
     ElMessage.error('获取导入历史失败')
+
   } finally {
     loading.value = false
+  }
+
+}
+
+const getStatusIcon = (status) => {
+  const iconMap = {
+    '成功': CircleCheck,
+    '部分成功': InfoFilled,
+    '失败': CircleClose,
+    '已取消': Close,
+    '处理中': Loading,
+    '待确认': QuestionFilled
+  }
+  return iconMap[status] || ''
+}
+
+const getStatusTagType = (status) => {
+  const typeMap = {
+    '成功': 'success',
+    '部分成功': 'warning',
+    '失败': 'danger',
+    '已取消': 'info',
+    '处理中': '',
+    '待确认': 'warning'
+  }
+  return typeMap[status] || ''
+}
+
+const handleStatusClick = (row) => {
+  if (row.status === '失败') {
+    errorMessage.value = row.message
+    errorDialogVisible.value = true
+  }
+}
+
+const handleReset = () => {
+  searchParams.value = {
+    timeRange: [],
+    status: ''
   }
 }
 
@@ -227,62 +311,288 @@ const handlePageChange = () => {
 }
 
 const handleShowImportDialog = () => {
+  console.info('import..')
   fileList.value = []
   showImportDialog.value = true
 }
 
-const handleFileChange = (file, files) => {
-  fileList.value = files
+// TODO 删除
+const addData = ref([])
+
+const formatTime = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+};
+
+const setParseProgress = () => {
+  showProgress.value = true
+  progressTitle.value = '文档解析中'
+  progressDescription.value = '后台正在解析文档内容...'
+  progressText.value = '解析进度'
+  progressFooterText.value = '正在处理...'
+  progressPercentage.value = 0
+  progressStatus.value = ''
 }
 
-const handleStartParse = async () => {
-  if (fileList.value.length === 0) {
-    ElMessage.warning('请选择要导入的文件')
+const handleStartImport = async (params) => {
+  const { fileList } = params
+
+
+  // TODO 删除
+  if ("1" ==  '1') {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const taskId = crypto.randomUUID()
+    const docId = crypto.randomUUID()
+
+    // TODO 删除
+    addData.value = []
+    for (let i = 0; i < params.fileList.length; i++) {
+      const ele = params.fileList[i];
+
+      let tmp = { importTime: formatTime(), condition: ele.file.name, importType: ele.fileType, fileCount: '1', count: 15, status: '成功' }
+      addData.value.push(tmp);
+    }
+    
+    // 提交成功 → 关闭上传弹窗
+    showImportDialog.value = false
+    
+    // 设置进度条参数
+    setParseProgress()
+
+    // 轮询进度
+    startProgressLoop(taskId, docId)
     return
   }
 
-  showImportDialog.value = false
-  showProgress.value = true
-  progressTitle.value = '正在解析导入数据'
-  progressDescription.value = '请稍候，正在解析需求条目...'
-  progressText.value = '解析进度'
-  progressFooterText.value = '正在处理需求条目...'
-  progressPercentage.value = 0
-  progressStatus.value = ''
 
   try {
-    const result = await parseImportFiles(fileList.value, (progress) => {
-      progressPercentage.value = progress
-    })
+    const res = await submitParseFile(fileList)
+    const taskId = res.data?.taskId
+    
+    if (!taskId) {
+      ElMessage.error('解析失败，未获取到任务ID')
+      return
+    }
 
-    if (result.success) {
+    // 提交成功 → 关闭上传弹窗
+    showImportDialog.value = false
+    
+    // 设置进度条参数
+    setParseProgress()
+
+    // 轮询进度
+    startProgressLoop(taskId, docId)
+
+  } catch (err) {
+    // 接口失败 → 不关闭上传弹窗
+    ElMessage.error('提交解析失败：' + (err.message || '服务异常'))
+  }
+  
+}
+
+// 轮询查询解析进度
+const startProgressLoop = (taskId, docId) => {
+  if (progressTimer.value) clearInterval(progressTimer.value)
+
+  // TODO 后续删除
+  if ("1" == "1") {
+    mockProgressLoop(taskId, docId)
+    return
+  }
+
+  progressTimer.value = setInterval(async () => {
+    try {
+      const res = await getParseProgress(taskId)
+      const { progress, status } = res.data
+
+      progressPercentage.value = progress
+
+      // 完成
+      if (status === 'SUCCESS') {
+        clearInterval(progressTimer.value)
+        progressTimer.value = null
+        progressPercentage.value = 100
+        progressStatus.value = 'success'
+        progressFooterText.value = '解析完成'
+
+        setTimeout(() => {
+          showProgress.value = false
+          ElMessage.success('解析完成')
+
+          afterParseComplete(taskId, docId)
+        }, 800)
+      }
+
+      // 失败
+      if (status === 'FAILED') {
+        clearInterval(progressTimer.value)
+        progressTimer.value = null
+        showProgress.value = false
+        ElMessage.error('解析失败')
+      }
+
+    } catch (err) {
+      clearInterval(progressTimer.value)
+      progressTimer.value = null
+      showProgress.value = false
+      ElMessage.error('查询进度失败')
+    }
+  }, 1500)
+}
+
+// ========== 假进度模拟 ==========
+const mockProgressLoop = (taskId, docId) => {
+  let mockPercent = 0
+  progressTimer.value = setInterval(() => {
+    mockPercent += 10
+    if (mockPercent >= 100) {
+      mockPercent = 100
+      clearInterval(progressTimer.value)
+      progressTimer.value = null
+
       progressPercentage.value = 100
       progressStatus.value = 'success'
       progressFooterText.value = '解析完成'
-      
+
       setTimeout(() => {
         showProgress.value = false
-        ElMessage.success('文件解析成功')
-        loadImportHistory()
-      }, 1000)
-    } else {
-      throw new Error(result.message)
+        ElMessage.success('解析完成')
+        afterParseComplete(taskId, docId)
+      }, 800)
     }
-  } catch (error) {
-    showProgress.value = false
-    ElMessage.error(error.message || '解析失败')
+    progressPercentage.value = mockPercent
+  }, 300)
+  return
+}
+
+// 进度完成后执行
+const afterParseComplete = (taskId, docId) => {
+
+  // 打开预览界面
+  openPageOfficePreview({ fileId: 123, fileName: '测试文档.docx', taskId: taskId, docId: docId })
+
+}
+
+
+// 打开 PageOffice 预览页面
+const openPageOfficePreview = (fileParams) => {
+  const paramString = JSON.stringify(fileParams)
+  POBrowser.openWindow('/pageOffice/parseResultPreview', 'fullscreen=yes', paramString)
+}
+
+const setConfirmProgress = () => {
+  showProgress.value = true
+  progressTitle.value = '确认导入中'
+  progressDescription.value = '正在保存解析结果到系统...'
+  progressText.value = '导入进度'
+  progressFooterText.value = '正在保存...'
+  progressPercentage.value = 0
+  progressStatus.value = ''
+}
+
+const startConfirmProgressLoop = (taskId) => {
+  if (progressTimer.value) clearInterval(progressTimer.value)
+
+  // TODO 后续删除
+  if ("1" == "1") {
+    mockConfirmProgressLoop(taskId)
+    return
   }
+
+  progressTimer.value = setInterval(async () => {
+    try {
+      const res = await getParseProgress(taskId)
+      const { progress, status } = res.data
+
+      progressPercentage.value = progress
+
+      // 完成
+      if (status === 'SUCCESS') {
+        clearInterval(progressTimer.value)
+        progressTimer.value = null
+        progressPercentage.value = 100
+        progressStatus.value = 'success'
+        progressFooterText.value = '导入完成'
+
+        setTimeout(() => {
+          showProgress.value = false
+          ElMessage.success('导入完成')
+
+          // 刷新列表
+          loadImportHistory()
+        }, 800)
+      }
+
+      // 失败
+      if (status === 'FAILED') {
+        clearInterval(progressTimer.value)
+        progressTimer.value = null
+        showProgress.value = false
+        ElMessage.error('解析失败')
+      }
+
+    } catch (err) {
+      clearInterval(progressTimer.value)
+      progressTimer.value = null
+      showProgress.value = false
+      ElMessage.error('查询进度失败')
+    }
+  }, 1500)
+}
+
+// ========== TODO 假进度模拟 ==========
+const mockConfirmProgressLoop = (taskId) => {
+  let mockPercent = 0
+  progressTimer.value = setInterval(() => {
+    mockPercent += 10
+    if (mockPercent >= 100) {
+      mockPercent = 100
+      clearInterval(progressTimer.value)
+      progressTimer.value = null
+
+      progressPercentage.value = 100
+      progressStatus.value = 'success'
+      progressFooterText.value = '导入完成'
+
+      setTimeout(() => {
+        showProgress.value = false
+        ElMessage.success('导入完成')
+        
+        
+        mockTmpTableData.value.unshift(...addData.value);
+
+        loadImportHistory() // 刷新列表
+      }, 800)
+    }
+    progressPercentage.value = mockPercent
+  }, 300)
+  return
 }
 
 const handleViewDetail = async (row) => {
-  try {
-    const res = await getImportDetail(row.id)
-    currentDetail.value = { ...row, ...res.data }
-    requirementList.value = res.data.requirements || []
-    showDetailDialog.value = true
-  } catch (error) {
-    ElMessage.error('获取详情失败')
-  }
+
+  
+  let paramJson = {};
+  paramJson.file_id = 1;
+  paramJson.file_name = "test.docx";
+  let paramString = JSON.stringify(paramJson);
+
+  //openWindow()第三个参数用来向弹出的PageOffice浏览器（POBrowser）窗口传递参数(参数长度不限)，支持json格式字符串。
+  //此处为了方便演示，我们传递了file_id和file_name两个参数，具体以您实际开发为准。
+  // POBrowser.openWindow('/pageOffice/parseResultPreview', "width=1000px;height=600px;", paramString);
+
+  // const paramString = JSON.stringify({})
+  POBrowser.openWindow('/pageOffice/parseResultPreview', 'fullscreen=yes', paramString)
+
+
+  // try {
+  //   const res = await getImportDetail(row.id)
+  //   currentDetail.value = { ...row, ...res.data }
+  //   requirementList.value = res.data.requirements || []
+  //   showDetailDialog.value = true
+  // } catch (error) {
+  //   ElMessage.error('获取详情失败')
+  // }
 }
 
 const handleConfirmImport = async () => {
@@ -309,7 +619,7 @@ const handleConfirmImport = async () => {
         showDetailDialog.value = false
         ElMessage.success('导入成功')
         loadImportHistory()
-      }, 1000)
+      }, 800)
     } else {
       throw new Error(result.message)
     }
@@ -329,6 +639,7 @@ const handleCancelImport = async () => {
     ElMessage.error('取消失败')
   }
 }
+
 </script>
 
 <style scoped>
@@ -398,4 +709,66 @@ const handleCancelImport = async () => {
   padding: 20px;
   overflow: auto;
 }
+
+
+.status-clickable { cursor: pointer; }
+.status-clickable:hover { opacity: 0.8; }
+:deep(.status-tag) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+:deep(.status-tag .status-icon) {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.ir-count {
+  color: #9254de;
+  font-weight: 500;
+}
+
+.sr-count {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.ar-count {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.import-btn-wrapper {
+  display: flex;
+  justify-content: flex-end;  /* 靠右 */
+  margin-bottom: 15px;        /* 离表格间距 */
+}
+.import-btn {
+  /* display: flex;
+  align-items: center;
+  gap: 4px; */
+  margin-left: auto;
+}
+
+.upload_text_tip {
+  color: #9fa6b1;
+  padding-top: 10px;
+}
+
+
+.custom-upload :deep(.el-upload) {
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px 0;
+  text-align: center;
+  background-color: #fff;
+}
+
+.upload-icon {
+  font-size: 48px;
+  color: #c0c4cc;
+  margin-bottom: 16px;
+}
+
 </style>

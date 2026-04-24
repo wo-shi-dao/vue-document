@@ -40,6 +40,11 @@ const routes = [
     component: () => import("../views/pageOffice/ReadWord.vue"),
     meta: { type: "pageOffice" },
   },
+  {
+    path: '/pageOffice/parseResultPreview',
+    component: () => import ('../views/pageOffice/ParseResultPreview.vue'),
+    meta: { type: "pageOffice" }
+  },
 ];
 
 const router = createRouter({
