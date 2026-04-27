@@ -212,7 +212,13 @@
             clearable
             check-strictly
             style="width: 100%"
-          />
+          >
+            <template #default="{ data: { label } }">
+              <div class="folder-laber">
+                <span class="file-icon" v-html="folderIcon"></span>{{ label }}
+              </div>
+            </template>
+          </el-tree-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -360,6 +366,12 @@ const folderTreeData = [
   },
 ];
 
+const folderIcon = `
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#F7C331"/>
+      </svg>
+    `;
+
 onMounted(async () => {
   // try {
   //   const response = await request({
@@ -441,7 +453,7 @@ const mockTreeData = ref([
     children: [
       {
         id: "d3",
-        name: "测试用例.xlsx",
+        name: "测试用例.pdf",
         type: "ppt",
         isFolder: false,
         creator: "赵六",
@@ -555,7 +567,7 @@ const testData = [
     children: [
       {
         id: "d3",
-        name: "测试用例.xlsx",
+        name: "测试用例.pdf",
         type: "ppt",
         isFolder: false,
         creator: "赵六",
@@ -978,5 +990,14 @@ const handleSearchHistory = async () => {
 
 .create-button {
   margin-bottom: 16px;
+}
+
+.folder-laber {
+  display: flex;
+  align-items: center;
+}
+
+.file-icon {
+  margin-right: 4px;
 }
 </style>

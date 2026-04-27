@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="生成文档"
+    :title="props.title"
     width="800px"
     :before-close="handleClose"
   >
@@ -20,7 +20,19 @@
             placeholder="请选择"
             :data="treeSelectData"
             :render-after-expand="false"
-          />
+          >
+            <template #default="{ data: { label, children } }">
+              <div class="folder-laber">
+                <span
+                  v-if="children"
+                  class="file-icon"
+                  v-html="folderIcon"
+                ></span>
+                <span v-else class="file-icon" v-html="wordIcon"></span>
+                {{ label }}
+              </div>
+            </template>
+          </el-tree-select>
         </el-form-item>
 
         <el-form-item label="所属文件夹">
@@ -31,7 +43,13 @@
             clearable
             check-strictly
             style="width: 100%"
-          />
+          >
+            <template #default="{ data: { label } }">
+              <div class="folder-laber">
+                <span class="file-icon" v-html="folderIcon"></span>{{ label }}
+              </div>
+            </template>
+          </el-tree-select>
         </el-form-item>
       </div>
 
@@ -80,6 +98,10 @@ const props = defineProps({
   type: {
     type: String,
     default: "",
+  },
+  title: {
+    type: String,
+    default: "生成文档",
   },
 });
 
@@ -199,6 +221,65 @@ const resetForm = () => {
   formRef.value?.clearValidate();
 };
 
+//图标
+const getOfficeIconSvg = (type, children) => {
+  const size = 24;
+  if (children != undefined) {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#F7C331"/>
+      </svg>
+    `;
+  }
+  if (type === "word") {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4H14L20 10V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#2B57D9"/>
+        <path d="M14 4V10H20" fill="white" opacity="0.3"/>
+        <text x="12" y="16" font-size="10" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">W</text>
+      </svg>
+    `;
+  }
+  if (type === "excel") {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4H14L20 10V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#21A366"/>
+        <path d="M14 4V10H20" fill="white" opacity="0.3"/>
+        <text x="12" y="16" font-size="10" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">X</text>
+      </svg>
+    `;
+  }
+  if (type === "ppt") {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4H14L20 10V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#D24726"/>
+        <path d="M14 4V10H20" fill="white" opacity="0.3"/>
+        <text x="12" y="16" font-size="10" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">P</text>
+      </svg>
+    `;
+  }
+  return `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 4H14L20 10V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#c0c6cc"/>
+      <path d="M14 4V10H20" fill="white" opacity="0.3"/>
+    </svg>
+  `;
+};
+
+const wordIcon = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4H14L20 10V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#2B57D9"/>
+        <path d="M14 4V10H20" fill="white" opacity="0.3"/>
+        <text x="12" y="16" font-size="10" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">W</text>
+      </svg>
+    `;
+
+const folderIcon = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#F7C331"/>
+      </svg>
+    `;
+
 // ---------- 监听 props.visible 变化 ----------
 watch(
   () => props.visible,
@@ -226,11 +307,7 @@ const handleSubmit = async () => {
     await formRef.value.validate();
 
     // 触发提交事件，将表单数据传递给父组件
-    emit("submit", {
-      name: formData.name,
-      type: formData.type,
-      parentId: formData.parentId,
-    });
+    emit("submit", {});
   } catch (error) {
     console.error("表单校验失败:", error);
   }
@@ -266,5 +343,18 @@ const handleClose = (done) => {
   text-align: center;
   color: #9ca3af;
   margin: 20px;
+}
+
+.folder-laber {
+  display: flex;
+  align-items: center;
+}
+
+.file-icon {
+  margin-right: 4px;
+}
+
+.el-tree-select__popper {
+  height: 24px;
 }
 </style>

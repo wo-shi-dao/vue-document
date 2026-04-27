@@ -8,7 +8,8 @@ function OnPageOfficeCtrlInit() {
   // PageOffice的初始化事件回调函数，您可以在这里添加自定义按钮
   pageofficectrl.CustomToolbar = false; //隐藏自定义工具栏
   pageofficectrl.OfficeToolbars = false; //隐藏Office工具栏
-  pageofficectrl.Caption = "只读模式打开Word文档";
+  // pageofficectrl.word.DocumentMap = true;
+  // pageofficectrl.Caption = "只读模式打开Word文档";
 }
 
 function openFile() {
@@ -31,8 +32,5 @@ onMounted(() => {
 
 <template>
   <!-- 此div用来加载PageOffice客户端控件，其中div的高宽及位置就决定了控件的大小及位置 -->
-  <div
-    style="width: 100%; height: calc(100vh - 70px)"
-    v-html="poHtmlCode"
-  ></div>
+  <div style="width: 100%; height: 100vh" v-html="poHtmlCode"></div>
 </template>
