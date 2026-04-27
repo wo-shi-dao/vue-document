@@ -4,7 +4,7 @@ import { checkPermission } from "../utils/permission";
 const routes = [
   {
     path: "/",
-    redirect: "/document-management",
+    redirect: "/document-export",
   },
   {
     path: "/no-permission",
@@ -19,9 +19,9 @@ const routes = [
     meta: { title: "初始化文档目录", requiresAuth: true },
   },
   {
-    path: "/document-management",
+    path: "/document-export",
     name: "DocumentManagement",
-    component: () => import("../views/DocumentManagement.vue"),
+    component: () => import("../views/DocumentExport.vue"),
     meta: { title: "文档管理", requiresAuth: true },
   },
   {
@@ -41,9 +41,9 @@ const routes = [
     meta: { type: "pageOffice" },
   },
   {
-    path: '/pageOffice/parseResultPreview',
-    component: () => import ('../views/pageOffice/ParseResultPreview.vue'),
-    meta: { type: "pageOffice" }
+    path: "/pageOffice/parseResultPreview",
+    component: () => import("../views/pageOffice/ParseResultPreview.vue"),
+    meta: { type: "pageOffice" },
   },
 ];
 

@@ -29,9 +29,9 @@
       <el-container>
         <el-aside width="200px" class="layout-aside">
           <el-menu :default-active="activeMenu" router class="side-menu">
-            <el-menu-item index="/document-management">
-              <el-icon><Document /></el-icon>
-              <span>文档管理</span>
+            <el-menu-item index="/document-export">
+              <el-icon><Download /></el-icon>
+              <span>文档导出</span>
             </el-menu-item>
             <el-menu-item index="/document-import">
               <el-icon><Upload /></el-icon>
@@ -51,7 +51,7 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { User, Document, Upload, FolderAdd } from "@element-plus/icons-vue";
+import { User, Download, Upload, FolderAdd } from "@element-plus/icons-vue";
 
 const route = useRoute();
 console.log("route", route);

@@ -63,3 +63,9 @@ html, body {
   border-color: #7693f5;
   background: #7693f5;
  }
+
+ .el-menu-item.is-active {
+  color: #252b3a;
+  background-color: #e1e8fd;
+  font-weight: 600;
+ }

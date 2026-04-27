@@ -1,8 +1,14 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import request from "../../utils/request";
+import CreateDocumentDialog from "../../components/CreateDocumentDialog.vue";
 
 const poHtmlCode = ref("");
+
+// 生成文档
+const showCreateDialog = ref(false);
+// 生成文档提交loading
+const createDocSubmitting = ref(false);
 
 function openFile() {
   // 发起GET请求到后端Controller的路由
@@ -36,6 +42,13 @@ function AfterDocumentOpened() {
   // 文档打开后的逻辑
 }
 
+const changeDocument = () => {
+  pageofficectrl.Enabled = false;
+  showCreateDialog.value = true;
+};
+
+const handleSubmitDocument = () => {};
+
 onMounted(() => {
   openFile().then((response) => {
     poHtmlCode.value = response;
@@ -48,7 +61,28 @@ onMounted(() => {
 
 <template>
   <div class="Word">
+    <div class="change-button">
+      <el-button type="primary" @click="changeDocument">更新文档</el-button>
+    </div>
     <!-- 此div用来加载PageOffice客户端控件，其中div的高宽及位置就决定了控件的大小及位置 -->
-    <div style="width: auto; height: 900px" v-html="poHtmlCode"></div>
+    <div
+      style="margin-top: 16px; width: 100%; height: calc(100vh - 70px)"
+      v-html="poHtmlCode"
+    ></div>
+    <!-- 生成文档弹窗 -->
+    <CreateDocumentDialog
+      v-model:visible="showCreateDialog"
+      v-model:submitting="createDocSubmitting"
+      type="search"
+      @submit="handleSubmitDocument"
+    />
   </div>
 </template>
+
+<style scoped>
+.change-button {
+  display: flex;
+  margin: 16px;
+  justify-content: end;
+}
+</style>

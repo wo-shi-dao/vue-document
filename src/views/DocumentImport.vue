@@ -1,4 +1,7 @@
 <template>
+  <div class="page-nav">
+    <p><span class="nav-firstTitle">文档管理 / </span> <span>文档导入</span></p>
+  </div>
   <div class="document-import-container">
     <!-- 标题区域 -->
     <div class="header">
@@ -170,7 +173,7 @@ const formItems = ref([
     field: "creationDateRange",
     label: "导入时间",
     componentProps: {
-      type: "daterange",
+      type: "datetimerange",
       "start-placeholder": "开始时间",
       "end-placeholder": "结束时间",
       format: "YYYY-MM-DD HH:mm:ss",
@@ -783,6 +786,17 @@ const handleCancelImport = async () => {
 </script>
 
 <style scoped>
+.page-nav {
+  background: #fff;
+  height: 32px;
+  font-size: 14px;
+  padding: 0 16px;
+  line-height: 32px;
+}
+
+.nav-firstTitle {
+  color: #777777;
+}
 .document-import-container {
   padding: 20px;
   background-color: #f3f3f3;

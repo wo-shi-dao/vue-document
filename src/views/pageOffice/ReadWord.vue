@@ -31,5 +31,8 @@ onMounted(() => {
 
 <template>
   <!-- 此div用来加载PageOffice客户端控件，其中div的高宽及位置就决定了控件的大小及位置 -->
-  <div style="width: auto; height: 900px" v-html="poHtmlCode"></div>
+  <div
+    style="width: 100%; height: calc(100vh - 70px)"
+    v-html="poHtmlCode"
+  ></div>
 </template>

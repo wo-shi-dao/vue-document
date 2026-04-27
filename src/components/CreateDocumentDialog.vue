@@ -1,68 +1,53 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    align-center
     title="生成文档"
-    width="500px"
+    width="800px"
     :before-close="handleClose"
   >
     <el-form :model="formData" label-width="120px" ref="formRef">
-      <!-- <el-form-item
-        label="文档名称"
-        required
-        prop="name"
-        :rules="[{ required: true, message: '请输入文档名称', trigger: 'blur' }]"
-      >
-        <el-input v-model="formData.name" placeholder="请输入文档名称" />
-      </el-form-item>
+      <div v-if="props.type !== 'search'">
+        <el-form-item
+          label="文档模板"
+          required
+          prop="type"
+          :rules="[
+            { required: true, message: '请选择模板文档', trigger: 'change' },
+          ]"
+        >
+          <el-tree-select
+            v-model="formData.type"
+            placeholder="请选择"
+            :data="treeSelectData"
+            :render-after-expand="false"
+          />
+        </el-form-item>
 
-      <el-form-item
-        label="文档类型"
-        required
-        prop="type"
-        :rules="[{ required: true, message: '请选择文档类型', trigger: 'change' }]"
-      >
-        <el-select v-model="formData.type" placeholder="请选择" style="width: 100%">
-          <el-option label="Word" value="docx" />
-          <el-option label="Excel" value="xlsx" />
-          <el-option label="PDF" value="pdf" />
-        </el-select>
-      </el-form-item> -->
-
-      <el-form-item
-        label="文档模板"
-        required
-        prop="type"
-        :rules="[
-          { required: true, message: '请选择模板文档', trigger: 'change' },
-        ]"
-      >
-        <el-tree-select
-          v-model="formData.type"
-          placeholder="请选择"
-          :data="treeSelectData"
-          :render-after-expand="false"
-        />
-      </el-form-item>
-
-      <el-form-item label="所属文件夹">
-        <el-tree-select
-          v-model="formData.parentId"
-          :data="folderTreeData"
-          placeholder="请选择文件夹（不选则为根目录）"
-          clearable
-          check-strictly
-          style="width: 100%"
-        />
-      </el-form-item>
+        <el-form-item label="所属文件夹">
+          <el-tree-select
+            v-model="formData.parentId"
+            :data="folderTreeData"
+            placeholder="请选择文件夹（不选则为根目录）"
+            clearable
+            check-strictly
+            style="width: 100%"
+          />
+        </el-form-item>
+      </div>
 
       <el-form-item label="需求创建时间">
         <el-date-picker
           v-model="formData.daterange"
-          type="daterange"
+          type="datetimerange"
           start-placeholder="开始时间"
           end-placeholder="结束时间"
         />
+      </el-form-item>
+
+      <el-form-item label="其它筛选条件">
+        <div class="search-region">
+          <p class="search-p">预留可扩展空间</p>
+        </div>
       </el-form-item>
     </el-form>
 
@@ -90,6 +75,11 @@ const props = defineProps({
   submitting: {
     type: Boolean,
     default: false,
+  },
+  // 类型（从哪打开的）
+  type: {
+    type: String,
+    default: "",
   },
 });
 
@@ -170,6 +160,12 @@ const folderTreeData = [
   {
     value: "1",
     label: "项目文档",
+    children: [
+      {
+        value: "1-1",
+        label: "软件需求",
+      },
+    ],
   },
   {
     value: "2",
@@ -181,6 +177,7 @@ const folderTreeData = [
 const emit = defineEmits([
   "update:visible", // 支持 v-model
   "submit", // 提交表单时触发
+  "close", // 关闭弹窗触发
 ]);
 
 // ---------- 响应式数据 ----------
@@ -257,5 +254,17 @@ const handleClose = (done) => {
 </script>
 
 <style scoped>
-/* 可根据需要添加样式 */
+.search-region {
+  width: 100%;
+  border: 2px dashed #e5e7eb;
+  border-radius: 10px;
+  padding-right: 10px;
+}
+
+.search-p {
+  font-size: 18px;
+  text-align: center;
+  color: #9ca3af;
+  margin: 20px;
+}
 </style>
