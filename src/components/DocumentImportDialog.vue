@@ -33,7 +33,7 @@
         已选择 <span style="font-weight: 600; color: #303133;">{{ showFileList.length }}</span> 个文件
       </div>
       
-      <el-table :data="showFileList" border row-key="uid"  max-height="235">
+      <el-table :data="showFileList" border row-key="uid"  max-height="235" class="no-shadow-table">
         <el-table-column label="文件名" min-width="250">
           <template #default="{ row }">
             <span>{{ row.name }}</span>
@@ -275,4 +275,9 @@ const handleStartParse = () => {
   color: #9fa6b1;
   padding-top: 10px;
 }
+.el-table.no-shadow-table {
+  border-radius: 0 ;
+  box-shadow: none;
+}
+
 </style>
