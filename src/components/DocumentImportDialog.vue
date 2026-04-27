@@ -34,7 +34,7 @@
       </div>
       
       <el-table :data="showFileList" border row-key="uid"  max-height="235" class="no-shadow-table">
-        <el-table-column label="文件名" min-width="250">
+        <el-table-column label="文件名称" min-width="250">
           <template #default="{ row }">
             <span>{{ row.name }}</span>
           </template>
@@ -44,7 +44,7 @@
           <template #header>
             <span>
               <span style="color: red;">*</span>
-              文件类型
+              需求类型
             </span>
           </template>
           <template #default="{ row }">
@@ -151,8 +151,8 @@ const docTypeList = ref([
   // { label: '设计文档', value: 'DESIGN' },
   // { label: '用户手册', value: 'MANUAL' }
     { label: 'IR', value: 'IR' },
-    { label: 'AR', value: 'AR' },
     { label: 'SR', value: 'SR' },
+    { label: 'AR', value: 'AR' },
 ])
 
 // -------------- 后续清理--------------
@@ -166,7 +166,7 @@ const loadDocumentTypes = async () => {
     // documentTypeList.value = res.data || []
     documentTypeList.value = docTypeList.value
   } catch (err) {
-    ElMessage.error('获取文件类型失败')
+    ElMessage.error('获取需求类型失败')
     documentTypeList.value = []
   } finally {
     typeLoading.value = false

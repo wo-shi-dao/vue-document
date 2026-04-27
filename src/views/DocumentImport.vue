@@ -37,14 +37,27 @@
     </div>
 
     <!-- 导入历史表格 -->
-    <el-table :data="importList" style="width: 100%" border v-loading="loading">
+    <el-table :data="importList" style="width: 100%" border v-loading="loading" >
       <el-table-column prop="importTime" label="导入时间" width="180" />
       <!-- <el-table-column prop="batchNo" label="批次号" width="150" /> -->
-      <el-table-column prop="condition" label="文件名称" min-width="150" />
-      <el-table-column prop="importType" label="文件类型" min-width="80" />
+      <!-- <el-table-column prop="fileName" label="文件名称" min-width="150" /> -->
+      <el-table-column label="文件名称" min-width="150">
+        <template #default="scope">
+          <span>{{ scope.row.fileName }}</span>
+          <el-tag
+            v-if="scope.row.tag === 'new'"
+            type="danger"
+            size="small"
+            style="margin-left: 6px;"
+          >
+            NEW
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="importType" label="需求类型" min-width="80" />
       <!-- <el-table-column prop="fileName" label="文件名称" min-width="200" /> -->
-      <el-table-column prop="fileCount" label="文件数" min-width="80" />
-      <el-table-column prop="count" label="数量" min-width="80" />
+      <!-- <el-table-column prop="fileCount" label="文件数" min-width="80" /> -->
+      <el-table-column prop="count" label="需求数量" min-width="80" />
 
       <el-table-column label="状态" width="120">
         <template #default="{ row }">
@@ -62,6 +75,7 @@
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column prop="creator" label="导入用户" width="120" />
       <el-table-column label="操作" width="120">
         <template #default="{ row }">
           <el-button
@@ -197,33 +211,34 @@ const errorMessage = ref("");
 // --------------TODO 后续清理--------------
 // 表格数据
 const mockTmpTableData = ref([
-  // { importTime: '2024-07-25 16:30:00', condition: '需求文档 v2.1.0', fileCount: '3', irCount: 25, srCount: 11, arCount: 5, status: '成功' },
-  // { importTime: '2024-07-23 09:20:00', condition: '用户需求初稿', fileCount: '4', irCount: 0, srCount: 12, arCount: 0, status: '处理中' },
-  // { importTime: '2024-07-22 14:45:00', condition: '测试用例文档', fileCount: '5', irCount: 10, srCount: 9, arCount: 0, status: '部分成功' },
-  // { importTime: '2024-07-21 16:10:00', condition: '接口文档异常版本', fileCount: '2', irCount: 0, srCount: 11, arCount: 15, status: '失败', message: '文件格式错误：仅支持 .xlsx / .docx' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 5, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 9, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 10, arCount: 8, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 16, arCount: 7, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 0, arCount: 5, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 3, arCount: 2, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 5, arCount: 0, status: '待确认' },
-  // { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 19, arCount: 15, status: '待确认' },
-  // { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', irCount: 0, srCount: 11, arCount: 5, status: '已取消' }
-  { importTime: '2024-07-25 16:30:00', condition: '需求文档 v2.1.0', fileCount: '3', status: '成功', importType: 'IR', count: 25 },
-  { importTime: '2024-07-23 09:20:00', condition: '用户需求初稿', fileCount: '4', status: '处理中', importType: 'IR', count: 0 },
-  { importTime: '2024-07-22 14:45:00', condition: '测试用例文档', fileCount: '5', status: '部分成功', importType: 'IR', count: 10 },
-  { importTime: '2024-07-21 16:10:00', condition: '接口文档异常版本', fileCount: '2', status: '失败', message: '文件解析异常，内容为空。', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '性能优化整改说明', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '系统配置变更单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '角色权限梳理文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '权限管理清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '后端接口规范文档', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '迭代优化需求清单', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-20 11:30:00', condition: '需求汇总文档V1', fileCount: '1', status: '待确认', importType: 'IR', count: 0 },
-  { importTime: '2024-07-19 15:20:00', condition: '旧版需求文档', fileCount: '2', status: '已取消', importType: 'IR', count: 0 }
-])
+  // { importTime: '2024-07-25 16:30:00', fileName: '需求文档 v2.1.0', fileCount: '3', irCount: 25, srCount: 11, arCount: 5, status: '成功' },
+  // { importTime: '2024-07-23 09:20:00', fileName: '用户需求初稿', fileCount: '4', irCount: 0, srCount: 12, arCount: 0, status: '处理中' },
+  // { importTime: '2024-07-22 14:45:00', fileName: '测试用例文档', fileCount: '5', irCount: 10, srCount: 9, arCount: 0, status: '部分成功' },
+  // { importTime: '2024-07-21 16:10:00', fileName: '接口文档异常版本', fileCount: '2', irCount: 0, srCount: 11, arCount: 15, status: '失败', message: '文件格式错误：仅支持 .xlsx / .docx' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 5, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 11, arCount: 9, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 10, arCount: 8, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 16, arCount: 7, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 0, arCount: 5, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 3, arCount: 2, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 5, arCount: 0, status: '待确认' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 19, arCount: 15, status: '待确认' },
+  // { importTime: '2024-07-19 15:20:00', fileName: '旧版需求文档', fileCount: '2', irCount: 0, srCount: 11, arCount: 5, status: '已取消' }
+  { importTime: '2024-07-25 16:30:00', fileName: '需求文档 v2.1.0.docx', fileCount: '3', status: '待确认', importType: 'IR', count: 25, creator: '李四' },
+  { importTime: '2024-07-23 09:20:00', fileName: '用户需求初稿.docx', fileCount: '4', status: '待确认', importType: 'IR', count: 0, creator: '王五' },
+  { importTime: '2024-07-22 14:45:00', fileName: '测试用例文档P01.docx', fileCount: '5', status: '成功', importType: 'IR', count: 10, creator: '赵六' },
+  { importTime: '2024-07-22 11:30:00', fileName: '需求汇总文档.docx', fileCount: '1', status: '处理中', importType: 'IR', count: 0, creator: '张三' },
+  { importTime: '2024-07-21 16:10:00', fileName: '用户需求明细文档.docx', fileCount: '2', status: '失败', message: '文件解析异常，内容为空。', importType: 'IR', count: 0, creator: '孙七' },
+  { importTime: '2024-07-20 11:26:00', fileName: '测试用例文档V1.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' },
+  // { importTime: '2024-07-20 11:30:00', fileName: '系统配置变更单.docx', fileCount: '1', status: '部分成功', importType: 'IR', count: 0, creator: '张三' },
+  // { importTime: '2024-07-20 10:28:00', fileName: '角色权限梳理文档.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
+  // { importTime: '2024-07-20 10:28:00', fileName: '权限管理清单.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
+  // { importTime: '2024-07-20 10:28:00', fileName: '后端接口规范文档.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
+  // { importTime: '2024-07-19 15:20:00', fileName: '旧版需求文档.docx', fileCount: '2', status: '已取消', importType: 'IR', count: 0, creator: '钱八' },
+  // { importTime: '2024-07-19 10:28:00', fileName: '迭代优化需求清单.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' },
+  // { importTime: '2024-07-19 10:28:00', fileName: '需求汇总文档V1.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' }
+]);
+
 // --------------后续清理--------------
 
 onMounted(() => {
@@ -277,6 +292,8 @@ const loadImportHistory = async () => {
       page: pagination.current,
       size: pagination.size,
     });
+    // TODO 到时候如果是导入后的刷新，那么这里新加的数据，标识上new
+
     importList.value = res.data.list || [];
     pagination.total = res.data.total || 0;
   } catch (error) {
@@ -354,9 +371,9 @@ const formatTime = () => {
 
 const setParseProgress = () => {
   showProgress.value = true;
-  progressTitle.value = "文档解析中";
-  progressDescription.value = "后台正在解析文档内容...";
-  progressText.value = "解析进度";
+  progressTitle.value = "文档导入中";
+  progressDescription.value = "后台正在导入文档内容...";
+  progressText.value = "导入进度";
   progressFooterText.value = "正在处理...";
   progressPercentage.value = 0;
   progressStatus.value = "";
@@ -376,7 +393,7 @@ const handleStartImport = async (params) => {
     for (let i = 0; i < params.fileList.length; i++) {
       const ele = params.fileList[i];
 
-      let tmp = { importTime: formatTime(), condition: ele.file.name, importType: ele.fileType, fileCount: '1', count: 15, status: '成功' };
+      let tmp = { importTime: formatTime(), fileName: ele.file.name, importType: ele.fileType, fileCount: '1', count: 10, status: '成功', creator: '张三', tag: 'new' };
       addData.value.push(tmp);
     }
 
@@ -386,8 +403,11 @@ const handleStartImport = async (params) => {
     // 设置进度条参数
     setParseProgress();
 
+    // TOOD fileName,临时写法
+    const fileName = params.fileList[0].file.name
+
     // 轮询进度
-    startProgressLoop(taskId, docId);
+    startProgressLoop(taskId, docId, fileName);
     return;
   }
 
@@ -396,7 +416,7 @@ const handleStartImport = async (params) => {
     const taskId = res.data?.taskId;
 
     if (!taskId) {
-      ElMessage.error("解析失败，未获取到任务ID");
+      ElMessage.error("导入失败，未获取到任务ID");
       return;
     }
 
@@ -407,20 +427,21 @@ const handleStartImport = async (params) => {
     setParseProgress();
 
     // 轮询进度
-    startProgressLoop(taskId, docId);
+    // TODO 第三个参数，fileName，如何获取
+    startProgressLoop(taskId, docId, null);
   } catch (err) {
     // 接口失败 → 不关闭上传弹窗
-    ElMessage.error("提交解析失败：" + (err.message || "服务异常"));
+    ElMessage.error("提交导入失败：" + (err.message || "服务异常"));
   }
 };
 
-// 轮询查询解析进度
-const startProgressLoop = (taskId, docId) => {
+// 轮询查询导入进度
+const startProgressLoop = (taskId, docId, fileName) => {
   if (progressTimer.value) clearInterval(progressTimer.value);
 
   // TODO 后续删除
   if ("1" == "1") {
-    mockProgressLoop(taskId, docId);
+    mockProgressLoop(taskId, docId, fileName);
     return;
   }
 
@@ -437,13 +458,13 @@ const startProgressLoop = (taskId, docId) => {
         progressTimer.value = null;
         progressPercentage.value = 100;
         progressStatus.value = "success";
-        progressFooterText.value = "解析完成";
+        progressFooterText.value = "导入完成";
 
         setTimeout(() => {
           showProgress.value = false;
-          ElMessage.success("解析完成");
+          ElMessage.success("导入完成");
 
-          afterParseComplete(taskId, docId);
+          afterParseComplete(taskId, docId, fileName);
         }, 800);
       }
 
@@ -452,7 +473,7 @@ const startProgressLoop = (taskId, docId) => {
         clearInterval(progressTimer.value);
         progressTimer.value = null;
         showProgress.value = false;
-        ElMessage.error("解析失败");
+        ElMessage.error("导入失败");
       }
     } catch (err) {
       clearInterval(progressTimer.value);
@@ -464,7 +485,7 @@ const startProgressLoop = (taskId, docId) => {
 };
 
 // ========== 假进度模拟 ==========
-const mockProgressLoop = (taskId, docId) => {
+const mockProgressLoop = (taskId, docId, fileName) => {
   let mockPercent = 0;
   progressTimer.value = setInterval(() => {
     mockPercent += 10;
@@ -475,12 +496,12 @@ const mockProgressLoop = (taskId, docId) => {
 
       progressPercentage.value = 100;
       progressStatus.value = "success";
-      progressFooterText.value = "解析完成";
+      progressFooterText.value = "导入完成";
 
       setTimeout(() => {
         showProgress.value = false;
-        ElMessage.success("解析完成");
-        afterParseComplete(taskId, docId);
+        ElMessage.success("导入完成");
+        afterParseComplete(taskId, docId, fileName);
       }, 800);
     }
     progressPercentage.value = mockPercent;
@@ -489,10 +510,11 @@ const mockProgressLoop = (taskId, docId) => {
 };
 
 // 进度完成后执行
-const afterParseComplete = (taskId, docId) => {
+const afterParseComplete = (taskId, docId, fileName) => {
 
   // 打开预览界面
-  openPageOfficePreview({ fileId: 123, fileName: '测试文档.docx', taskId: taskId, docId: docId });
+  // openPageOfficePreview({ fileId: 123, fileName: '测试文档.docx', taskId: taskId, docId: docId });
+  openPageOfficePreview({ file_id: 123, file_name: fileName, taskId: taskId, docId: docId, showConfirmBtn: true });
 
 }
 
@@ -506,7 +528,7 @@ const openPageOfficePreview = (fileParams) => {
 const setConfirmProgress = () => {
   showProgress.value = true;
   progressTitle.value = "确认导入中";
-  progressDescription.value = "正在保存解析结果到系统...";
+  progressDescription.value = "正在保存导入结果到系统...";
   progressText.value = "导入进度";
   progressFooterText.value = "正在保存...";
   progressPercentage.value = 0;
@@ -551,7 +573,7 @@ const startConfirmProgressLoop = (taskId) => {
         clearInterval(progressTimer.value);
         progressTimer.value = null;
         showProgress.value = false;
-        ElMessage.error("解析失败");
+        ElMessage.error("导入失败");
       }
     } catch (err) {
       clearInterval(progressTimer.value);
@@ -579,6 +601,12 @@ const mockConfirmProgressLoop = (taskId) => {
       setTimeout(() => {
         showProgress.value = false;
         ElMessage.success("导入完成");
+        
+        for (let i = 0; i < mockTmpTableData.value.length; i++) {
+          const ele = mockTmpTableData.value[i];
+          ele.tag = null;
+        }
+
 
         mockTmpTableData.value.unshift(...addData.value);
 
@@ -593,7 +621,8 @@ const mockConfirmProgressLoop = (taskId) => {
 const handleViewDetail = async (row) => {
   let paramJson = {};
   paramJson.file_id = 1;
-  paramJson.file_name = "test.docx";
+  paramJson.file_name = row.fileName;
+  paramJson.showConfirmBtn = row.status == '待确认';
   let paramString = JSON.stringify(paramJson);
 
   //openWindow()第三个参数用来向弹出的PageOffice浏览器（POBrowser）窗口传递参数(参数长度不限)，支持json格式字符串。

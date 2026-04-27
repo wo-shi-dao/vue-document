@@ -1,8 +1,9 @@
 <template>
 <div>
   <div style="width:100%;height: 45px; display: flex; justify-content: space-between; align-items: center;">
-    <span class="title">文档解析结果预览</span>
-    <span class="button">
+    <!-- <span class="title">文档解析结果预览</span> -->
+    <span class="title">{{ open_params.file_name }}</span>
+    <span class="button" v-if="open_params.showConfirmBtn == true">
       <el-button @click="doClose()">取消</el-button>
       <el-button type="primary" @click="handleConfirmClick">确认导入</el-button>
     </span>
@@ -25,17 +26,17 @@
           v-model="searchKey"
           type="text"
           placeholder="搜索需求"
-          style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;"
-        />
+          class="search-input"
+          />
       </div>
 
       <div class="list">
         <div
           v-for="item in filteredList"
           :key="item.id"
+          class="demand-item"
           @click="selectDemand(item)"
-          style="padding: 10px; margin-bottom: 8px; background: #fff; border-radius: 4px; cursor: pointer; border: 1px solid transparent;"
-          :style="{ borderColor: selectedDemand?.id === item.id ? '#409eff' : 'transparent' }"
+          :class="{ active: selectedDemand?.id === item.id }"
         >
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <span>
@@ -44,9 +45,13 @@
               <span v-if="item.type==='AR'" style="background: #f2fff5; color: #3CB371; border: 1px solid #c5f0d0; padding: 0 4px; font-size: 12px; font-weight: bold; border-radius: 3px; display: inline-block;">{{ item.type }}</span>
             </span>
             <span style="font-weight: bold;">{{ item.code }}</span>
-            <span style="flex: 1;">{{ item.name }}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;padding-left: 30px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 30px;">
+            <span style="flex: 1; ">{{ item.name }}</span>
+          </div>
+
+
+          <!-- <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;padding-left: 30px;">
             <span 
               :style="{
                 color: item.priority === '高' ? '#ff4d4f' : item.priority === '中' ? '#faad14' : '#52c41a',
@@ -59,26 +64,18 @@
             </span>
             <span style="padding-left: 5px;">{{ item.module }}</span>
             <span style="padding-left: 5px;">{{ item.page }}</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
   </div>
 
-  <ProgressDialog
-    v-model:show="modalVisible"
-    :showClose="false"
-    title="正在导入"
-    description="正在处理解析结果..."
-    :progress="progressValue"
-  />
 </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import ProgressDialog from '@/components/ProgressDialog.vue'
 import request from "../../utils/request";
 import { getParseDetailList, confirmImport } from '../../api/document'
 
@@ -86,8 +83,6 @@ import { getParseDetailList, confirmImport } from '../../api/document'
 const poHtmlCode = ref('')
 const open_params = ref('')
 
-const modalVisible = ref(false)
-const progressValue = ref(0)
 
 const docId = ref('')
 
@@ -101,9 +96,21 @@ const fetchDemandList = async () => {
 
 // TODO 后续删除
 const mockDemandList = ref([
-  { id: 1, code: 'IR-0001', name: '用户管理功能', priority: '高', module: '用户管理', page: 'P.1', type: 'IR' },
-  { id: 2, code: 'IR-0002', name: '订单管理功能', priority: '高', module: '订单管理', page: 'P.7', type: 'IR' },
-  { id: 3, code: 'IR-0003', name: '报表统计功能', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  // { id: 1, code: 'IRD555A-AAA-DDD-001', name: '用户管理功能', priority: '高', module: '用户管理', page: 'P.1', type: 'IR' },
+  // { id: 2, code: 'IRD555A-AAA-NN-DDD-024', name: '订单管理功能', priority: '高', module: '订单管理', page: 'P.7', type: 'IR' },
+  // { id: 3, code: 'IRD555A-AAA-MM-DDD-054', name: '报表统计功能', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+
+  { id: 1, code: 'TKD539A-SWR-SF.023', name: '牵引安全', priority: '高', module: '订单管理', page: 'P.7', type: 'IR' },
+  { id: 2, code: 'TKD539A-SWR-NF.024', name: '主断路器控制', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 3, code: 'TKD539A-SWRCP-SF.074', name: '主断路器控制指令（安全）', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 4, code: 'TKD539A-SWRCP-NI.212', name: '硬线本单元列车级主断状态', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 5, code: 'TKD539A-SWRCP-NI.213', name: '硬线它单元列车级主断状态', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 6, code: 'TKD539A-SWRCP-SI.214', name: '硬线单元级主断状态', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 7, code: 'TKD539A-SWRCP-NI.215', name: '硬线短接接触器状态反馈', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 8, code: 'TKD539A-SWRCP-NI.216', name: '硬线预充电接触器状态反馈', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 9, code: 'TKD539A-SWRCP-NI.270', name: '硬线接触网网压检测', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+  { id: 10, code: 'TKD539A-SWRCP-SI.450', name: '硬线主断使能', priority: '中', module: '报表统计', page: 'P.10', type: 'IR' },
+
 ])
 
 const searchKey = ref('')
@@ -128,11 +135,16 @@ const count = computed(() => {
 
 
 const selectDemand = (item) => {
-  selectedDemand.value = item
+  selectedDemand.value = item;
   try {
-    pageofficectrl.word.HomeKey(6)
-    pageofficectrl.word.FindNextText(item.code)
-  } catch (e) {}
+    pageofficectrl.word.HomeKey(6);
+    // pageofficectrl.word.FindNextText(item.code)
+     if (pageofficectrl.word.FindNextText(item.code)) {
+     } else {
+      alert("未搜索到位置。");
+     }
+  } catch (e) {
+  }
 }
 
 
@@ -170,29 +182,18 @@ const handleConfirmClick = async () => {
     ElMessage.error('导入失败：' + (err.message || '服务异常'))
   }
 
-    // modalVisible.value = true
-    // progressValue.value = 0
-
-    // const timer = setInterval(() => {
-    //   progressValue.value += 10
-    //   if (progressValue.value >= 100) {
-    //     clearInterval(timer)
-    //     setTimeout(() => {
-    //       modalVisible.value = false
-    //       doClose()
-    //     }, 500)
-    //   }
-    // }, 200)
 }
 
-function OnPageOfficeCtrlInit() {}
+function OnPageOfficeCtrlInit() {
+  
+  pageofficectrl.DisableSave = true;
+  pageofficectrl.DisableSaveAs = true;
+  pageofficectrl.DisablePrint = true;
+  pageofficectrl.CustomToolbar = false; //隐藏自定义工具栏
+  pageofficectrl.OfficeToolbars = false; //隐藏Office工具栏
+}
 function AfterDocumentOpened() {
-  pageofficectrl.DisableSave = true
-  pageofficectrl.DisableSaveAs = true
-  pageofficectrl.DisablePrint = true
-  pageofficectrl.CustomToolbar = false;
 }
-function Save() {}
 
 
 const doClose = (params) => {
@@ -205,10 +206,10 @@ const doClose = (params) => {
 }
 
 onMounted(async () => {
-  open_params.value = JSON.parse(pageofficectrl.WindowParams)
-  openFile().then(res => poHtmlCode.value = res)
+  open_params.value = JSON.parse(pageofficectrl.WindowParams);
+  openFile().then(res => poHtmlCode.value = res);
 
-  docId.value = open_params.value.docId
+  docId.value = open_params.value.docId;
 
 
   
@@ -218,7 +219,7 @@ onMounted(async () => {
   demandList.value = mockDemandList.value
 
 
-  window.POPageMounted = { OnPageOfficeCtrlInit, AfterDocumentOpened, Save }
+  window.POPageMounted = { OnPageOfficeCtrlInit, AfterDocumentOpened }
 })
 
 function openFile() {
@@ -237,4 +238,38 @@ function openFile() {
 .list { height: calc(100vh - 160px - 25px); overflow-y: auto; padding-right: 5px; }
 .title { font-size: 16px; padding-left: 10px; }
 .button { padding-right: 10px; }
+.search-input {
+  width: 100%;
+  padding: 5px 8px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+.search-input:focus {
+  border-color: #409eff;
+}
+
+.demand-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #fff;
+  border-radius: 6px; /* 轻微圆角，比原来更柔和 */
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 14px;
+
+  
+}
+.demand-item:hover {
+  border-color: #e4e7ed; /* hover 时显示浅灰边框 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); /* 轻微阴影，提升质感 */
+}
+.demand-item.active {
+  border-color: #409eff; /* 选中状态保持你原来的蓝色边框 */
+  background: #f0f7ff; /* 加一层淡蓝背景，选中更清晰 */
+}
 </style>
