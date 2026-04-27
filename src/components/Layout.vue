@@ -106,7 +106,9 @@ const activeMenu = computed(() => {
 .side-menu {
   border-right: none;
 }
-
+.el-menu-item {
+  height: 45px;
+}
 .layout-main {
   background-color: #f5f7fa;
   padding: 0;

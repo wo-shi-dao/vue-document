@@ -225,11 +225,11 @@ const mockTmpTableData = ref([
   // { importTime: '2024-07-20 11:30:00', fileName: '需求汇总文档', fileCount: '1', irCount: 0, srCount: 19, arCount: 15, status: '待确认' },
   // { importTime: '2024-07-19 15:20:00', fileName: '旧版需求文档', fileCount: '2', irCount: 0, srCount: 11, arCount: 5, status: '已取消' }
   { importTime: '2024-07-25 16:30:00', fileName: '需求文档 v2.1.0.docx', fileCount: '3', status: '待确认', importType: 'IR', count: 25, creator: '李四' },
-  { importTime: '2024-07-23 09:20:00', fileName: '用户需求初稿.docx', fileCount: '4', status: '待确认', importType: 'IR', count: 0, creator: '王五' },
+  { importTime: '2024-07-23 09:20:00', fileName: '用户需求初稿.docx', fileCount: '4', status: '待确认', importType: 'IR', count: 5, creator: '王五' },
   { importTime: '2024-07-22 14:45:00', fileName: '测试用例文档P01.docx', fileCount: '5', status: '成功', importType: 'IR', count: 10, creator: '赵六' },
   { importTime: '2024-07-22 11:30:00', fileName: '需求汇总文档.docx', fileCount: '1', status: '处理中', importType: 'IR', count: 0, creator: '张三' },
   { importTime: '2024-07-21 16:10:00', fileName: '用户需求明细文档.docx', fileCount: '2', status: '失败', message: '文件解析异常，内容为空。', importType: 'IR', count: 0, creator: '孙七' },
-  { importTime: '2024-07-20 11:26:00', fileName: '测试用例文档V1.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' },
+  { importTime: '2024-07-20 11:26:00', fileName: '测试用例文档V1.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 6, creator: '张三' },
   // { importTime: '2024-07-20 11:30:00', fileName: '系统配置变更单.docx', fileCount: '1', status: '部分成功', importType: 'IR', count: 0, creator: '张三' },
   // { importTime: '2024-07-20 10:28:00', fileName: '角色权限梳理文档.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
   // { importTime: '2024-07-20 10:28:00', fileName: '权限管理清单.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
