@@ -29,13 +29,13 @@
       <el-container>
         <el-aside width="200px" class="layout-aside">
           <el-menu :default-active="activeMenu" router class="side-menu">
-            <el-menu-item index="/document-export">
-              <el-icon><Download /></el-icon>
-              <span>文档导出</span>
-            </el-menu-item>
             <el-menu-item index="/document-import">
               <el-icon><Upload /></el-icon>
               <span>文档导入</span>
+            </el-menu-item>
+            <el-menu-item index="/document-export">
+              <el-icon><Download /></el-icon>
+              <span>文档导出</span>
             </el-menu-item>
           </el-menu>
         </el-aside>

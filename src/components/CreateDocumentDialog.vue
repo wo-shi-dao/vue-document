@@ -348,13 +348,10 @@ const handleClose = (done) => {
 .folder-laber {
   display: flex;
   align-items: center;
+  height: 24px;
 }
 
 .file-icon {
   margin-right: 4px;
-}
-
-.el-tree-select__popper {
-  height: 24px;
 }
 </style>

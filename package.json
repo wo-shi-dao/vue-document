@@ -9,12 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@devui-design/icons": "^1.4.0",
     "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.15.2",
+    "devui-theme": "^0.1.0",
     "element-plus": "^2.13.7",
     "js-pageoffice": "6.6.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
+    "vue-devui": "^1.6.36",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {

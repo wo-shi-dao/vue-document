@@ -3,35 +3,44 @@
     <p><span class="nav-firstTitle">文档管理 / </span> <span>文档导出</span></p>
   </div>
   <div class="document-management-container">
-    <!-- 标题区域 -->
-    <div class="header">
-      <h3 class="title">文档导出</h3>
-      <div>
-        <el-button type="primary" @click="handleShowGenerateDialog">
-          生成文档
-        </el-button>
-        <el-button type="primary"> 上传 </el-button>
-      </div>
-    </div>
-
     <!-- Tab页签 -->
-    <el-tabs v-model="activeTab" class="content-tabs">
-      <!-- 文档内容Tab -->
-      <el-tab-pane label="文档内容" name="content">
+    <d-tabs type="wrapped" v-model="activeTab" class="content-tabs">
+      <d-tab id="content" class="tab-panal" title="文档内容">
         <!-- 筛选条件 -->
-        <BaseDataSearchForm
-          :formItems="formItems"
-          :searchForm="searchForm"
-          @search="handleSearch"
-          span="3"
-        />
-        <el-button
-          type="primary"
-          class="create-button"
-          @click="handleCreateFolder"
-        >
-          新建文件夹
-        </el-button>
+        <div class="table-head">
+          <el-button type="primary" @click="openCreateDoc">
+            初始化文档模板
+          </el-button>
+          <el-button
+            type="primary"
+            :disabled="!documentList.length"
+            @click="handleShowGenerateDialog"
+          >
+            生成文档
+          </el-button>
+          <el-button type="primary"> 上传 </el-button>
+          <d-button
+            class="table-head-button"
+            variant="solid"
+            color="secondary"
+            @click="handleCreateFolder"
+            >新建文件夹</d-button
+          >
+          <d-category-search
+            class="head-search"
+            :category="category"
+            placeholder="请输入关键字，按Enter键搜索"
+            @selectedTagsChange="onSelectedTagsChange"
+          >
+          </d-category-search>
+          <!-- <d-range-date-picker-pro
+            v-model="datePickerProValue1"
+            class="head-search"
+            :showTime="true"
+            format="YYYY/MM/DD HH:mm:ss"
+          /> -->
+        </div>
+
         <!-- 文档表格 -->
         <el-table
           :data="documentList"
@@ -71,9 +80,7 @@
                 <el-button link type="primary" @click="handleRenameFolder(row)">
                   重命名
                 </el-button>
-                <el-button link type="primary" @click="handleRenameFolder(row)">
-                  上传
-                </el-button>
+                <el-button link type="primary"> 上传 </el-button>
                 <el-button
                   v-if="row.isEmpty"
                   link
@@ -136,17 +143,8 @@
             @current-change="handlePageChange"
           />
         </el-config-provider>
-      </el-tab-pane>
-
-      <!-- 历史记录Tab -->
-      <el-tab-pane label="历史记录" name="history">
-        <BaseDataSearchForm
-          :formItems="historyFormItems"
-          :searchForm="searchForm"
-          @search="handleSearch"
-          span="3"
-        />
-
+      </d-tab>
+      <d-tab id="history" class="tab-panal" title="历史记录">
         <el-table :data="mockHistoryList" style="width: 100%" border>
           <el-table-column prop="name" label="文档名称" min-width="180" />
           <el-table-column prop="creator" label="创建人" min-width="120" />
@@ -178,8 +176,8 @@
           @size-change="handlePageSizeChange"
           @current-change="handlePageChange"
         />
-      </el-tab-pane>
-    </el-tabs>
+      </d-tab>
+    </d-tabs>
 
     <!-- 生成文档弹窗 -->
     <CreateDocumentDialog
@@ -269,8 +267,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import ProgressDialog from "../components/ProgressDialog.vue";
 import { POBrowser } from "js-pageoffice";
 import request from "../utils/request";
+import { useRouter } from "vue-router";
 import { Document, Folder } from "@element-plus/icons-vue";
-import BaseDataSearchForm from "@/components/BasicDataSearchForm/index.vue";
 import CreateDocumentDialog from "../components/CreateDocumentDialog.vue";
 import {
   getDocumentList,
@@ -284,56 +282,13 @@ import {
   getHistoryList,
 } from "../api/document";
 
+const router = useRouter();
 const activeTab = ref("content");
 const loading = ref(false);
 const documentList = ref([]);
 const historyList = ref([]);
 
-const filters = reactive({
-  name: "",
-  type: "",
-});
-
-const searchForm = ref({});
-// 表单项
-const formItems = ref([
-  {
-    componentType: "el-date-picker",
-    field: "creationDateRange",
-    label: "创建时间",
-    componentProps: {
-      type: "datetimerange",
-      "start-placeholder": "开始时间",
-      "end-placeholder": "结束时间",
-      format: "YYYY-MM-DD HH:mm:ss",
-      "value-format": "YYYY-MM-DD HH:mm:ss",
-    },
-  },
-]);
-
-const historyFormItems = ref([
-  {
-    componentType: "el-input",
-    field: "companyName",
-    label: "创建人",
-  },
-  {
-    componentType: "el-date-picker",
-    field: "creationDateRange",
-    label: "创建时间",
-    componentProps: {
-      type: "daterange",
-      "start-placeholder": "开始时间",
-      "end-placeholder": "结束时间",
-      format: "YYYY-MM-DD",
-      "value-format": "YYYY-MM-DD",
-    },
-  },
-]);
-
-const historyFilters = reactive({
-  timeRange: null,
-});
+const datePickerProValue1 = ref(["", ""]);
 
 const pagination = reactive({
   current: 1,
@@ -372,17 +327,18 @@ const folderIcon = `
       </svg>
     `;
 
-onMounted(async () => {
-  // try {
-  //   const response = await request({
-  //     url: "/index",
-  //     method: "get",
-  //   });
-  //   titleText.value = response;
-  // } catch (error) {
-  //   console.error("Failed to fetch title:", error);
-  // }
+//搜索
+const category = ref([
+  {
+    label: "创建时间",
+    field: "createTime",
+    type: "date",
+    group: "Time-related",
+    showTime: true,
+  },
+]);
 
+onMounted(() => {
   loadDocumentList();
 });
 
@@ -685,7 +641,6 @@ const loadDocumentList = async () => {
   loading.value = true;
   try {
     // const res = await getDocumentList({
-    //   ...filters,
     //   page: pagination.current,
     //   size: pagination.size,
     // });
@@ -759,12 +714,6 @@ const handleCreateFolder = () => {
   showAddFolderDialog.value = true;
 };
 
-const handleResetFilters = () => {
-  filters.name = "";
-  filters.type = "";
-  handleSearch();
-};
-
 const handlePageSizeChange = () => {
   pagination.current = 1;
   loadDocumentList();
@@ -774,12 +723,21 @@ const handlePageChange = () => {
   loadDocumentList();
 };
 
+// 跳转初始化文档模板
+const openCreateDoc = () => {
+  router.push("/init-document");
+};
+
 const handleViewDocument = (row) => {
   ElMessage.info("打开PageOffice查看文档（只读模式）");
 };
 
 const handleEditDocument = (row) => {
   ElMessage.info("打开PageOffice编辑文档");
+};
+
+const onSelectedTagsChange = (val) => {
+  console.log("val", val);
 };
 
 const handleDeleteDocument = async (row) => {
@@ -918,7 +876,7 @@ const handleGenerateDocument = async (form) => {
 
 const handleSearchHistory = async () => {
   try {
-    // const res = await getHistoryList(historyFilters);
+    // const res = await getHistoryList();
     historyList.value = mockHistoryList.value || [];
   } catch (error) {
     ElMessage.error("获取历史记录失败");
@@ -926,11 +884,39 @@ const handleSearchHistory = async () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .document-management-container {
-  padding: 20px;
   background-color: #f3f3f3;
   min-height: calc(100vh - 92px);
+}
+
+.content-tabs :deep(.devui-tabs__nav) {
+  padding-top: 4px;
+  padding-left: 4px;
+  margin-bottom: -1px;
+
+  .active a {
+    color: #252b3a;
+  }
+}
+
+.tab-panal {
+  padding: 12px 20px 0;
+  margin: 0;
+
+  .table-head {
+    display: flex;
+    margin-bottom: 10px;
+
+    .table-head-button {
+      margin-left: 12px;
+    }
+
+    .head-search {
+      max-width: 400px;
+      margin-left: 12px;
+    }
+  }
 }
 
 .page-nav {
@@ -939,10 +925,10 @@ const handleSearchHistory = async () => {
   font-size: 14px;
   padding: 0 16px;
   line-height: 32px;
-}
 
-.nav-firstTitle {
-  color: #777777;
+  .nav-firstTitle {
+    color: #777777;
+  }
 }
 
 .header {
@@ -957,12 +943,6 @@ const handleSearchHistory = async () => {
   font-weight: bold;
   color: #303133;
   margin: 0;
-}
-
-.content-tabs {
-  /* margin-top: 20px; */
-  /* background: #f3f3f3;
-  height: calc(100vh - 150px); */
 }
 
 .filter-section {
