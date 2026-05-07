@@ -1,11 +1,6 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
-    :title="props.title"
-    width="800px"
-    :before-close="handleClose"
-  >
-    <el-form :model="formData" label-width="120px" ref="formRef">
+  <el-dialog v-model="dialogVisible" :title="props.title" width="800px">
+    <el-form ref="formRef" :model="formData" label-width="120px">
       <div v-if="props.type !== 'search'">
         <el-form-item
           label="文档模板"
@@ -35,11 +30,18 @@
           </el-tree-select>
         </el-form-item>
 
-        <el-form-item label="所属文件夹">
+        <el-form-item
+          label="选择文档目录"
+          required
+          prop="parentId"
+          :rules="[
+            { required: true, message: '请选择文档目录', trigger: 'change' },
+          ]"
+        >
           <el-tree-select
             v-model="formData.parentId"
             :data="folderTreeData"
-            placeholder="请选择文件夹（不选则为根目录）"
+            placeholder="请选择"
             clearable
             check-strictly
             style="width: 100%"
@@ -53,19 +55,28 @@
         </el-form-item>
       </div>
 
-      <el-form-item label="需求创建时间">
-        <el-date-picker
-          v-model="formData.daterange"
-          type="datetimerange"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-        />
+      <el-form-item label="基线版本" prop="baselineVersion">
+        <el-select v-model="formData.baselineVersion" placeholder="请选择">
+          <el-option
+            v-for="item in basicOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
 
-      <el-form-item label="其它筛选条件">
-        <div class="search-region">
-          <p class="search-p">预留可扩展空间</p>
-        </div>
+      <el-form-item label="选择字段" prop="fields">
+        <el-checkbox-group v-model="formData.fields" style="width: 100%">
+          <div class="checkbox-list">
+            <el-checkbox
+              v-for="item in basicFields"
+              :value="item.value"
+              :label="item.label"
+              :disabled="item?.disabled"
+            />
+          </div>
+        </el-checkbox-group>
       </el-form-item>
     </el-form>
 
@@ -195,6 +206,28 @@ const folderTreeData = [
   },
 ];
 
+const basicOptions = ref([
+  { label: "基线V1.0", value: "V1.0" },
+  { label: "基线V2.0", value: "V2.0" },
+  { label: "基线V3.0", value: "V3.0" },
+  { label: "基线V4.0", value: "V4.0" },
+  { label: "基线V5.0", value: "V5.0" },
+]);
+
+const basicFields = ref([
+  { value: "title", label: "标题", disabled: true },
+  { value: "status", label: "状态", disabled: true },
+  { value: "tag", label: "标签" },
+  { value: "更新时间", label: "更新时间" },
+  { value: "实际工时", label: "实际工时" },
+  { value: "domain", label: "领域" },
+  { value: "decompose_status", label: "分解状态" },
+  { value: "module", label: "模块" },
+  { value: "计划工时", label: "计划工时" },
+  { value: "优先级", label: "优先级" },
+  { value: "描述", label: "描述" },
+]);
+
 // ---------- Emits 定义 ----------
 const emit = defineEmits([
   "update:visible", // 支持 v-model
@@ -208,17 +241,16 @@ const formRef = ref(null);
 const formData = reactive({
   name: "",
   type: "",
-  parentId: null,
-  daterange: [],
+  baselineVersion: "",
+  fields: ["title", "status", "tag", "更新时间", "实际工时"],
 });
 
 // ---------- 方法 ----------
 // 重置表单
 const resetForm = () => {
-  formData.name = "";
-  formData.type = "";
-  formData.parentId = null;
-  formRef.value?.clearValidate();
+  if (formRef.value) {
+    formRef.value.resetFields(); // 重置到初始值
+  }
 };
 
 //图标
@@ -318,33 +350,9 @@ const handleCancel = () => {
   dialogVisible.value = false;
   resetForm();
 };
-
-// 弹窗关闭前的回调
-const handleClose = (done) => {
-  if (props.submitting) {
-    ElMessage.warning("正在提交中，请稍后再试");
-    return;
-  }
-  resetForm();
-  done();
-};
 </script>
 
 <style scoped>
-.search-region {
-  width: 100%;
-  border: 2px dashed #e5e7eb;
-  border-radius: 10px;
-  padding-right: 10px;
-}
-
-.search-p {
-  font-size: 18px;
-  text-align: center;
-  color: #9ca3af;
-  margin: 20px;
-}
-
 .folder-laber {
   display: flex;
   align-items: center;
@@ -353,5 +361,11 @@ const handleClose = (done) => {
 
 .file-icon {
   margin-right: 4px;
+}
+
+.checkbox-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 16px;
 }
 </style>

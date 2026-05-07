@@ -18,7 +18,9 @@
           >
             生成文档
           </el-button>
-          <el-button type="primary"> 上传 </el-button>
+          <el-button type="primary" @click="handleShowUploadDialog">
+            上传
+          </el-button>
           <d-button
             class="table-head-button"
             variant="solid"
@@ -26,13 +28,15 @@
             @click="handleCreateFolder"
             >新建文件夹</d-button
           >
-          <d-category-search
+          <!-- <d-category-search
             class="head-search"
             :category="category"
             placeholder="请输入关键字，按Enter键搜索"
             @selectedTagsChange="onSelectedTagsChange"
+            @search="onSearch"
           >
-          </d-category-search>
+          </d-category-search> -->
+          <DateTimeRangeFilter />
           <!-- <d-range-date-picker-pro
             v-model="datePickerProValue1"
             class="head-search"
@@ -51,8 +55,9 @@
           lazy
           :load="loadTreeChildren"
           v-loading="loading"
+          default-expand-all
         >
-          <el-table-column prop="name" label="文档名称" min-width="220">
+          <el-table-column prop="name" label="文档目录名称" min-width="220">
             <template #default="{ row }">
               <span
                 class="file-icon"
@@ -80,7 +85,9 @@
                 <el-button link type="primary" @click="handleRenameFolder(row)">
                   重命名
                 </el-button>
-                <el-button link type="primary"> 上传 </el-button>
+                <el-button link type="primary" @click="handleShowUploadDialog">
+                  上传
+                </el-button>
                 <el-button
                   v-if="row.isEmpty"
                   link
@@ -248,6 +255,32 @@
       </template>
     </el-dialog>
 
+    <!-- 上传弹窗 -->
+    <el-dialog v-model="showUploadDialog" title="上传" width="500px">
+      <el-upload
+        ref="uploadRef"
+        :auto-upload="false"
+        :on-change="handleFileChange"
+        :on-remove="handleFileRemove"
+        :file-list="fileList"
+        accept=".doc,.docx,.xls,.xlsx,.pdf"
+        multiple
+        drag
+        style="margin-bottom: 10px"
+      >
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">点击或拖拽文件到此处上传</div>
+        <div class="upload_text_tip">
+          支持 .doc, .docx, .xls, .xlsx, .pdf 格式
+        </div>
+      </el-upload>
+
+      <template #footer>
+        <el-button @click="showUploadDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmUpload">确定</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 进度条弹窗 -->
     <ProgressDialog
       v-model="showProgress"
@@ -270,6 +303,7 @@ import request from "../utils/request";
 import { useRouter } from "vue-router";
 import { Document, Folder } from "@element-plus/icons-vue";
 import CreateDocumentDialog from "../components/CreateDocumentDialog.vue";
+import DateTimeRangeFilter from "../components/DateTimeRangeFilter.vue";
 import {
   getDocumentList,
   deleteDocument,
@@ -330,11 +364,28 @@ const folderIcon = `
 //搜索
 const category = ref([
   {
+    label: "创建人",
+    field: "creator",
+    type: "textInput",
+    group: "Basic",
+    maxLength: 10,
+    validateRules: [
+      { required: true, message: "不能为空", trigger: "change" },
+      // {
+      //   min: 3,
+      //   max: 10,
+      //   message: "不小于3个字符，不大于6个字符",
+      //   trigger: "change",
+      // },
+    ],
+  },
+  {
     label: "创建时间",
     field: "createTime",
-    type: "date",
-    group: "Time-related",
-    showTime: true,
+    type: "custom", // 自定义类型，指示使用自定义插槽
+    group: "Basic",
+    filterKey: "createTime",
+    // 无 options，因为不再使用下拉列表
   },
 ]);
 
@@ -630,6 +681,43 @@ const renameRules = {
   name: [{ required: true, message: "请输入名称", trigger: "blur" }],
 };
 
+// 上传
+const showUploadDialog = ref(false);
+const uploadRef = ref(null);
+const fileList = ref([]);
+
+const handleFileChange = (file, uploadFiles) => {
+  // fileList.value = uploadFiles
+  // showFileList.value = uploadFiles.map(item => ({
+  //   ...item,
+  //   fileType: item.fileType || ''
+  // }))
+
+  fileList.value = uploadFiles;
+
+  // 新列表 = 合并老类型 + 新文件
+  const newShowFileList = uploadFiles.map((newItem) => {
+    // 找老文件是否已存在，存在就复用之前的 fileType
+    const oldItem = showFileList.value.find((f) => f.uid === newItem.uid);
+    return {
+      ...newItem,
+      fileType: oldItem ? oldItem.fileType : "", // 保留类型！
+    };
+  });
+
+  showFileList.value = newShowFileList;
+};
+
+// 上传组件原生移除事件
+const handleFileRemove = (uploadFile, uploadFiles) => {
+  fileList.value = uploadFiles;
+  const newFiles = uploadFiles.map((item) => ({
+    ...item,
+    fileType: item.fileType || "",
+  }));
+  showFileList.value = newFiles;
+};
+
 // 进度条
 const showProgress = ref(false);
 const progressPercentage = ref(0);
@@ -740,6 +828,10 @@ const onSelectedTagsChange = (val) => {
   console.log("val", val);
 };
 
+const onSearch = (e) => {
+  console.log("search items:", e);
+};
+
 const handleDeleteDocument = async (row) => {
   try {
     await ElMessageBox.confirm("确定要删除该文档吗？", "提示", {
@@ -838,6 +930,14 @@ const handleShowGenerateDialog = () => {
   showGenerateDialog.value = true;
 };
 
+const handleShowUploadDialog = () => {
+  showUploadDialog.value = true;
+};
+
+const handleConfirmUpload = () => {
+  showUploadDialog.value = false;
+};
+
 const handleGenerateDocument = async (form) => {
   try {
     showGenerateDialog.value = false;
@@ -909,7 +1009,7 @@ const handleSearchHistory = async () => {
     margin-bottom: 10px;
 
     .table-head-button {
-      margin-left: 12px;
+      margin: 0 12px;
     }
 
     .head-search {

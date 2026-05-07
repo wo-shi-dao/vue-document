@@ -17,6 +17,11 @@ html, body {
   height: 100%;
 }
 
+/* 修改element-plus颜色 */
+:root {
+  --el-color-primary: #5e7ce0;
+}
+
 /* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 8px;
@@ -73,4 +78,14 @@ html, body {
  .el-button--primary.is-disabled, .el-button--primary.is-disabled:hover {
   border-color: #B4C6F5;
   background: #B4C6F5;
+ }
+
+ /* 勾选框颜色 */
+ .el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: #5e7ce0;
+  border-color: #5e7ce0;
+ }
+ .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+  background-color: #5e7ce0;
+  border-color: #5e7ce0;
  }
