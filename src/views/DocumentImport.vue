@@ -4,17 +4,36 @@
   </div>
   <div class="document-import-container">
     <!-- 标题区域 -->
-    <div class="header">
+    <!-- <div class="header">
       <h1 class="title">文档导入</h1>
-    </div>
+    </div> -->
 
     <!-- 筛选条件 -->
-    <BaseDataSearchForm
+    <!-- <BaseDataSearchForm
       :formItems="formItems"
       :searchForm="searchForm"
       @search="handleSearch"
       span="3"
-    />
+    /> -->
+
+    <div class="table-head">
+          <el-button
+            type="primary"
+            @click="handleShowImportDialog"
+          >
+            导入
+          </el-button>
+          <d-category-search
+            class="head-search"
+            :category="category"
+            placeholder="请输入关键字，按Enter键搜索"
+            @selectedTagsChange="onSelectedTagsChange"
+          >
+          </d-category-search>
+        </div>
+
+
+
     <!-- <div class="filter-section">
       <el-date-picker
         v-model="filters.importTime"
@@ -27,21 +46,19 @@
       <el-button @click="handleReset">重置</el-button>
     </div> -->
 
-    <div class="import-btn-wrapper">
+    <!-- <div class="import-btn-wrapper">
       <el-button
         type="primary"
         @click="handleShowImportDialog"
         class="import-btn"
         >导入</el-button
       >
-    </div>
+    </div> -->
 
     <!-- 导入历史表格 -->
     <el-table :data="importList" style="width: 100%" border v-loading="loading" >
       <el-table-column prop="importTime" label="导入时间" width="180" />
-      <!-- <el-table-column prop="batchNo" label="批次号" width="150" /> -->
-      <!-- <el-table-column prop="fileName" label="文件名称" min-width="150" /> -->
-      <el-table-column label="文件名称" min-width="150">
+      <el-table-column label="文件名称" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.fileName }}</span>
           <el-tag
@@ -55,8 +72,6 @@
         </template>
       </el-table-column>
       <el-table-column prop="importType" label="需求类型" min-width="80" />
-      <!-- <el-table-column prop="fileName" label="文件名称" min-width="200" /> -->
-      <!-- <el-table-column prop="fileCount" label="文件数" min-width="80" /> -->
       <el-table-column prop="count" label="需求数量" min-width="80" />
 
       <el-table-column label="状态" width="120">
@@ -76,18 +91,19 @@
         </template>
       </el-table-column>
       <el-table-column prop="creator" label="导入用户" width="120" />
-      <el-table-column label="操作" width="120">
+      <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
           <el-button
-            v-if="
-              row.status !== 'processing' &&
-              row.status !== 'failed' &&
-              row.status !== 'cancelled'
-            "
-            link
-            type="primary"
-            @click.prevent="handleViewDetail(row)"
+          link
+          type="primary"
+          @click.prevent="handleViewDetail(row)"
           >
+          <!-- v-if="
+            row.status == 'processing' ||
+            row.status == 'failed' ||
+            row.status == 'cancelled'
+            || row.status == '待确认' 
+            " -->
             <!-- @click.prevent="handleViewDetail(row)" -->
             <!-- @click="handleViewDetail(row)" -->
             查看详情
@@ -138,9 +154,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed  } from 'vue';
 import { ElMessage } from 'element-plus';
-import { UploadFilled, CircleCheck, InfoFilled, CircleClose, Close, Loading, QuestionFilled } from '@element-plus/icons-vue';
+import { UploadFilled, CircleCheck, InfoFilled, CircleClose, Close, Loading, QuestionFilled, Calendar, Search, ArrowDown } from '@element-plus/icons-vue';
 import ProgressDialog from '../components/ProgressDialog.vue';
 import BaseDataSearchForm from "@/components/BasicDataSearchForm/index.vue";
 import DocumentImportDialog from '../components/DocumentImportDialog.vue';
@@ -234,12 +250,23 @@ const mockTmpTableData = ref([
   // { importTime: '2024-07-20 10:28:00', fileName: '角色权限梳理文档.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
   // { importTime: '2024-07-20 10:28:00', fileName: '权限管理清单.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
   // { importTime: '2024-07-20 10:28:00', fileName: '后端接口规范文档.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '孙七' },
-  // { importTime: '2024-07-19 15:20:00', fileName: '旧版需求文档.docx', fileCount: '2', status: '已取消', importType: 'IR', count: 0, creator: '钱八' },
+  { importTime: '2024-07-19 15:20:00', fileName: '旧版需求文档.docx', fileCount: '2', status: '已取消', importType: 'IR', count: 0, creator: '钱八' },
   // { importTime: '2024-07-19 10:28:00', fileName: '迭代优化需求清单.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' },
   // { importTime: '2024-07-19 10:28:00', fileName: '需求汇总文档V1.docx', fileCount: '1', status: '待确认', importType: 'IR', count: 0, creator: '张三' }
 ]);
 
 // --------------后续清理--------------
+
+
+const category = ref([
+  {
+    label: "创建时间",
+    field: "createTime",
+    type: "date",
+    group: "Time-related",
+    showTime: true,
+  },
+]);
 
 onMounted(() => {
   loadImportHistory();
@@ -275,7 +302,7 @@ const loadImportHistory = async () => {
     const start = (pagination.current - 1) * pagination.size;
     const end = start + pagination.size;
 
-    // ✅ 前端分页
+    // 前端分页
     importList.value = list.slice(start, end);
     pagination.total = total;
 
@@ -704,7 +731,7 @@ const handleCancelImport = async () => {
 .document-import-container {
   padding: 20px;
   background-color: #f3f3f3;
-  min-height: 100vh;
+  height: calc(100vh - 92px);
 }
 
 .header {
@@ -827,5 +854,19 @@ const handleCancelImport = async () => {
   font-size: 48px;
   color: #c0c4cc;
   margin-bottom: 16px;
+}
+
+.table-head {
+  display: flex;
+  margin-bottom: 10px;
+
+  .table-head-button {
+    margin-left: 12px;
+  }
+
+  .head-search {
+    max-width: 400px;
+    margin-left: 12px;
+  }
 }
 </style>

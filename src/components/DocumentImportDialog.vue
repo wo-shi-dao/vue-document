@@ -3,7 +3,7 @@
   <el-dialog
     v-model="visible"
     title="导入文档"
-    width="650px"
+    width="800px"
     :close-on-click-modal="false"
   >
     <el-upload
@@ -26,9 +26,6 @@
     
     <!-- 文件列表 -->
     <div v-if="showFileList.length > 0" style="margin-bottom: 20px" >
-      <!-- <div style="margin-bottom:10px;color:#666;">
-        已选择 <span style="color:#409eff;font-weight:bold">{{ showFileList.length }}</span> 个文件
-      </div> -->
       <div style="margin-bottom: 10px; font-size: 14px; color: #303133;">
         已选择 <span style="font-weight: 600; color: #303133;">{{ showFileList.length }}</span> 个文件
       </div>
@@ -37,6 +34,31 @@
         <el-table-column label="文件名称" min-width="250">
           <template #default="{ row }">
             <span>{{ row.name }}</span>
+          </template>
+        </el-table-column>
+        
+        <el-table-column width="180">
+          <template #header>
+            <span>
+              <span style="color: red;">*</span>
+              所属部门
+            </span>
+          </template>
+          <template #default="{ row }">
+            <el-select
+              v-model="row.dept"
+              placeholder="请选择部门"
+              style="width: 100%"
+              clearable
+              :loading="deptLoading"
+            >
+              <el-option
+                v-for="item in deptList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
           </template>
         </el-table-column>
 
@@ -125,12 +147,28 @@ const uploadRef = ref(null)
 const documentTypeList = ref([])
 const typeLoading = ref(false)
 
+
+// 新增：部门列表相关
+const deptList = ref([])
+const deptLoading = ref(false)
+// 记忆上次选择的部门ID
+const lastDept = ref('')
+
 // 打开弹窗时加载类型
 watch(() => props.show, (val) => {
-  if (val && documentTypeList.value.length === 0) {
-    loadDocumentTypes()
+  if (val) {
+    if (documentTypeList.value.length === 0) {
+      loadDocumentTypes()
+    }
+
+    if (deptList.value.length === 0) {
+      loadDeptList()
+    }
+    // 读取本地记忆部门
+    lastDept.value = localStorage.getItem('LAST_UPLOAD_DEPT') || ''
   }
 })
+    
 
 // 监听弹窗关闭 → 自动清空数据
 watch(() => props.show, (newVal) => {
@@ -145,16 +183,20 @@ watch(() => props.show, (newVal) => {
 
 // 动态文档类型（你可以从接口取、从配置读、从后台返）
 const docTypeList = ref([
-  // { label: '需求文档', value: 'REQUIREMENT' },
-  // { label: '接口文档', value: 'API' },
-  // { label: '测试文档', value: 'TEST' },
-  // { label: '设计文档', value: 'DESIGN' },
-  // { label: '用户手册', value: 'MANUAL' }
     { label: 'IR', value: 'IR' },
     { label: 'SR', value: 'SR' },
     { label: 'AR', value: 'AR' },
 ])
-
+// Mock部门数据
+const mockDeptList = ref([
+  { label: '科技和信息化部', value: 'RD1' },
+  { label: '制动开发部', value: 'RD2' },
+  { label: '交流传动开发部', value: 'PD' },
+  { label: '网络控制开发部', value: 'QA' },
+  { label: '数智赋能中心', value: 'OP1' },
+  { label: '基础开发部', value: 'OP2' },
+  { label: '安全监测开发部', value: 'OP3' },
+])
 // -------------- 后续清理--------------
 
 
@@ -162,9 +204,14 @@ const docTypeList = ref([
 const loadDocumentTypes = async () => {
   typeLoading.value = true
   try {
-    // const res = await getDocumentTypeList()
-    // documentTypeList.value = res.data || []
-    documentTypeList.value = docTypeList.value
+    // TODO 删除
+    if ("1" === "1") {
+      documentTypeList.value = docTypeList.value
+      return
+    }
+    // 真实接口
+    const res = await getDocumentTypeList()
+    documentTypeList.value = res.data || []
   } catch (err) {
     ElMessage.error('获取需求类型失败')
     documentTypeList.value = []
@@ -173,6 +220,25 @@ const loadDocumentTypes = async () => {
   }
 }
 
+// 获取部门列表
+const loadDeptList = async () => {
+  deptLoading.value = true
+  try {
+    // TODO 删除
+    if ("1" === "1") {
+      deptList.value = mockDeptList.value
+      return
+    }
+    // 真实接口（放开注释即用）
+    // const res = await getDeptList()
+    // deptList.value = res.data || []
+  } catch (err) {
+    ElMessage.error('获取部门失败')
+    deptList.value = []
+  } finally {
+    deptLoading.value = false
+  }
+}
 
 const handleFileChange = (file, uploadFiles) => {
   // fileList.value = uploadFiles
@@ -190,7 +256,8 @@ const handleFileChange = (file, uploadFiles) => {
     const oldItem = showFileList.value.find(f => f.uid === newItem.uid)
     return {
       ...newItem,
-      fileType: oldItem ? oldItem.fileType : '' // 保留类型！
+      fileType: oldItem ? oldItem.fileType : '',
+      dept: oldItem ? oldItem.dept : lastDept.value // 自动填充上次部门
     }
   })
 
@@ -210,7 +277,8 @@ const handleFileRemove = (uploadFile, uploadFiles) => {
   fileList.value = uploadFiles
   const newFiles = uploadFiles.map(item => ({
     ...item,
-    fileType: item.fileType || ''
+    fileType: item.fileType || '',
+    dept: item.dept || ''
   }))
   showFileList.value = newFiles
 }
@@ -218,7 +286,9 @@ const handleFileRemove = (uploadFile, uploadFiles) => {
 // 校验：所有文件都选择了类型，才能解析
 const canStartParse = computed(() => {
   if (showFileList.value.length === 0) return false
-  return showFileList.value.every(file => file.fileType && file.fileType.trim() !== '')
+  // return showFileList.value.every(file => file.fileType && file.fileType.trim() !== '')
+  console.info('tt--' + showFileList.value[0].fileType?.trim() + '--' + showFileList.value[0].dept?.trim())
+  return showFileList.value.every(file => file.fileType?.trim() && file.dept?.trim())
 })
 
 
@@ -246,13 +316,21 @@ const handleStartParse = () => {
   }
 
   if (!canStartParse.value) {
-    ElMessage.warning('请选择文档类型')
+    ElMessage.warning('请选择需求类型和部门')
     return
   }
 
+  // TODO 删除   保存最后一次选择的部门到本地（记忆功能）
+  const currentDept = showFileList.value[0]?.dept
+  if (currentDept) {
+    localStorage.setItem('LAST_UPLOAD_DEPT', currentDept)
+  }
+
+
   const parseParams = showFileList.value.map(item => ({
     file: item.raw,    // 真正的文件对象必须用 raw
-    fileType: item.fileType
+    fileType: item.fileType,
+    dept: item.dept
   }))
 
 
