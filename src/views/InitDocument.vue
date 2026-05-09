@@ -446,7 +446,7 @@ const handleStartInit = async () => {
       setTimeout(() => {
         showProgress.value = false;
         ElMessage.success("文档目录初始化成功");
-        router.push("/document-export");
+        router.push({ path: "/document-export", query: { created: "finish" } });
       }, 1000);
     } else {
       throw new Error(result.message);

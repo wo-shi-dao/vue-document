@@ -8,17 +8,26 @@
       <d-tab id="content" class="tab-panal" title="文档内容">
         <!-- 筛选条件 -->
         <div class="table-head">
-          <el-button type="primary" @click="openCreateDoc">
+          <el-button
+            type="primary"
+            v-if="!isCreateTemplate"
+            @click="openCreateDoc"
+          >
             初始化文档模板
           </el-button>
           <el-button
             type="primary"
             :disabled="!documentList.length"
+            v-if="isCreateTemplate"
             @click="handleShowGenerateDialog"
           >
             生成文档
           </el-button>
-          <el-button type="primary" @click="handleShowUploadDialog">
+          <el-button
+            type="primary"
+            v-if="isCreateTemplate"
+            @click="handleShowUploadDialog"
+          >
             上传
           </el-button>
           <d-button
@@ -300,7 +309,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import ProgressDialog from "../components/ProgressDialog.vue";
 import { POBrowser } from "js-pageoffice";
 import request from "../utils/request";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { Document, Folder } from "@element-plus/icons-vue";
 import CreateDocumentDialog from "../components/CreateDocumentDialog.vue";
 import DateTimeRangeFilter from "../components/DateTimeRangeFilter.vue";
@@ -317,6 +326,8 @@ import {
 } from "../api/document";
 
 const router = useRouter();
+//获取当前路由参数
+const route = useRoute();
 const activeTab = ref("content");
 const loading = ref(false);
 const documentList = ref([]);
@@ -329,6 +340,9 @@ const pagination = reactive({
   size: 10,
   total: 0,
 });
+
+//是否初始化过模板
+const isCreateTemplate = ref(false);
 
 // 生成文档
 const showGenerateDialog = ref(false);
@@ -390,6 +404,9 @@ const category = ref([
 ]);
 
 onMounted(() => {
+  if (route.query?.created === "finish") {
+    isCreateTemplate.value = true;
+  }
   loadDocumentList();
 });
 
@@ -413,45 +430,11 @@ const mockTreeData = ref([
     createTime: "2025-01-01 16:30:00",
     modifier: "admin",
     modifyTime: "2025-01-01 18:30:00",
-    children: [
-      {
-        id: "1-1",
-        name: "软件需求",
-        isFolder: true,
-        creator: "admin",
-        createTime: "2025-01-01 16:30:00",
-        modifier: "admin",
-        modifyTime: "2025-01-01 18:30:00",
-        children: [
-          {
-            id: "d1",
-            name: "需求规格.docx",
-            type: "word",
-            isFolder: false,
-            creator: "张三",
-            createTime: "2025-01-02 16:30:00",
-            modifier: "李四",
-            modifyTime: "2025-01-03 17:30:00",
-            parentId: "f1",
-          },
-          {
-            id: "d2",
-            name: "设计文档.docx",
-            type: "word",
-            isFolder: false,
-            creator: "王五",
-            createTime: "2025-01-04 12:30:00",
-            modifier: "王五",
-            modifyTime: "2025-01-04 18:30:00",
-            parentId: "f1",
-          },
-        ],
-      },
-    ],
+    children: [],
   },
   {
     id: "f2",
-    name: "测试报告",
+    name: "技术文档",
     isFolder: true,
     creator: "admin",
     createTime: "2025-01-05 08:30:00",
@@ -459,50 +442,36 @@ const mockTreeData = ref([
     modifyTime: "2025-01-05 11:30:00",
     children: [
       {
-        id: "d3",
-        name: "测试用例.pdf",
-        type: "ppt",
-        isFolder: false,
-        creator: "赵六",
-        createTime: "2025-01-06 16:30:00",
-        modifier: "赵六",
-        modifyTime: "2025-01-06 19:30:00",
-        parentId: "f2",
+        id: "f22",
+        name: "数据库文档",
+        isFolder: true,
+        creator: "admin",
+        createTime: "2025-01-05 08:30:00",
+        modifier: "admin",
+        modifyTime: "2025-01-05 11:30:00",
+        children: [],
       },
     ],
   },
   {
-    id: "d4",
-    name: "会议记录.docx",
-    type: "word",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 22:30:00",
-    parentId: null,
+    id: "f3",
+    name: "管理文档",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-05 08:30:00",
+    modifier: "admin",
+    modifyTime: "2025-01-05 11:30:00",
+    children: [],
   },
   {
-    id: "d4",
-    name: "测试记录.xlsx",
-    type: "excel",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 20:30:00",
-    parentId: null,
-  },
-  {
-    id: "d4",
-    name: "软件需求.pdf",
-    type: "ppt",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 19:30:00",
-    parentId: null,
+    id: "f4",
+    name: "用户文档",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-05 08:30:00",
+    modifier: "admin",
+    modifyTime: "2025-01-05 11:30:00",
+    children: [],
   },
 ]);
 
@@ -517,55 +486,22 @@ const testData = [
     modifyTime: "2025-01-01 18:30:00",
     children: [
       {
-        id: "1-1",
-        name: "软件需求",
-        isFolder: true,
-        creator: "admin",
-        createTime: "2025-01-01 16:30:00",
-        modifier: "admin",
-        modifyTime: "2025-01-01 18:30:00",
-        children: [
-          {
-            id: "d3",
-            name: "需求说明文档.docx",
-            type: "word",
-            tag: "new",
-            isFolder: false,
-            creator: "李四",
-            createTime: "2026-04-23 16:30:00",
-            modifier: "李四",
-            modifyTime: "2026-04-23 18:30:00",
-            parentId: "f1",
-          },
-          {
-            id: "d1",
-            name: "需求规格.docx",
-            type: "word",
-            isFolder: false,
-            creator: "张三",
-            createTime: "2025-01-02 16:30:00",
-            modifier: "李四",
-            modifyTime: "2025-01-03 17:30:00",
-            parentId: "f1",
-          },
-          {
-            id: "d2",
-            name: "设计文档.docx",
-            type: "word",
-            isFolder: false,
-            creator: "王五",
-            createTime: "2025-01-04 12:30:00",
-            modifier: "王五",
-            modifyTime: "2025-01-04 18:30:00",
-            parentId: "f1",
-          },
-        ],
+        id: "d3",
+        name: "需求文档.docx",
+        type: "word",
+        tag: "new",
+        isFolder: false,
+        creator: "李四",
+        createTime: "2026-04-23 16:30:00",
+        modifier: "李四",
+        modifyTime: "2026-04-23 18:30:00",
+        parentId: "f1",
       },
     ],
   },
   {
     id: "f2",
-    name: "测试报告",
+    name: "技术文档",
     isFolder: true,
     creator: "admin",
     createTime: "2025-01-05 08:30:00",
@@ -573,50 +509,36 @@ const testData = [
     modifyTime: "2025-01-05 11:30:00",
     children: [
       {
-        id: "d3",
-        name: "测试用例.pdf",
-        type: "ppt",
-        isFolder: false,
-        creator: "赵六",
-        createTime: "2025-01-06 16:30:00",
-        modifier: "赵六",
-        modifyTime: "2025-01-06 19:30:00",
-        parentId: "f2",
+        id: "f22",
+        name: "数据库文档",
+        isFolder: true,
+        creator: "admin",
+        createTime: "2025-01-05 08:30:00",
+        modifier: "admin",
+        modifyTime: "2025-01-05 11:30:00",
+        children: [],
       },
     ],
   },
   {
-    id: "d4",
-    name: "会议记录.docx",
-    type: "word",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 22:30:00",
-    parentId: null,
+    id: "f3",
+    name: "管理文档",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-05 08:30:00",
+    modifier: "admin",
+    modifyTime: "2025-01-05 11:30:00",
+    children: [],
   },
   {
-    id: "d4",
-    name: "测试记录.xlsx",
-    type: "excel",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 20:30:00",
-    parentId: null,
-  },
-  {
-    id: "d4",
-    name: "软件需求.pdf",
-    type: "ppt",
-    isFolder: false,
-    creator: "孙七",
-    createTime: "2025-01-07 16:30:00",
-    modifier: "孙七",
-    modifyTime: "2025-01-07 19:30:00",
-    parentId: null,
+    id: "f4",
+    name: "用户文档",
+    isFolder: true,
+    creator: "admin",
+    createTime: "2025-01-05 08:30:00",
+    modifier: "admin",
+    modifyTime: "2025-01-05 11:30:00",
+    children: [],
   },
 ];
 
@@ -732,8 +654,13 @@ const loadDocumentList = async () => {
     //   page: pagination.current,
     //   size: pagination.size,
     // });
-    documentList.value = mockTreeData.value || [];
-    pagination.total = 6 || 0;
+    if (isCreateTemplate.value) {
+      documentList.value = mockTreeData.value || [];
+      pagination.total = 6 || 0;
+    } else {
+      documentList.value = [];
+      pagination.total = 0;
+    }
   } catch (error) {
     ElMessage.error("获取文档列表失败");
   } finally {

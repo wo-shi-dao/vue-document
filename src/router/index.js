@@ -22,7 +22,7 @@ const routes = [
     path: "/document-export",
     name: "DocumentManagement",
     component: () => import("../views/DocumentExport.vue"),
-    meta: { title: "文档管理", requiresAuth: true },
+    meta: { title: "文档导出", requiresAuth: true },
   },
   {
     path: "/document-import",

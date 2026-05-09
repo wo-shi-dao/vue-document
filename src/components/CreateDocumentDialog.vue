@@ -14,17 +14,16 @@
             v-model="formData.type"
             placeholder="请选择"
             :data="treeSelectData"
+            node-key="id"
             :render-after-expand="false"
           >
-            <template #default="{ data: { label, children } }">
+            <template #default="{ data }">
               <div class="folder-laber">
                 <span
-                  v-if="children"
                   class="file-icon"
-                  v-html="folderIcon"
+                  v-html="getOfficeIconSvg(data?.type, data?.children)"
                 ></span>
-                <span v-else class="file-icon" v-html="wordIcon"></span>
-                {{ label }}
+                {{ data?.label }}
               </div>
             </template>
           </el-tree-select>
@@ -41,6 +40,7 @@
           <el-tree-select
             v-model="formData.parentId"
             :data="folderTreeData"
+            node-key="id"
             placeholder="请选择"
             clearable
             check-strictly
@@ -119,71 +119,48 @@ const props = defineProps({
 // 模板文档数据
 const treeSelectData = [
   {
-    value: "1",
-    label: "需求文档",
+    id: 1,
+    label: "项目文档",
     children: [
+      { id: 2, label: "需求文档.docx", type: "word" },
+      { id: 3, label: "设计文档.pdf", type: "ppt" },
+      { id: 4, label: "计划文档.xlsx", type: "excel" },
+    ],
+  },
+  {
+    id: 5,
+    label: "技术文档",
+    children: [
+      { id: 6, label: "接口文档.docx", type: "word" },
+      { id: 7, label: "部署文档.docx", type: "word" },
+      { id: 8, label: "架构文档.xlsx", type: "excel" },
       {
-        value: "1-1",
-        label: "软件需求文档",
+        id: 9,
+        label: "数据库文档",
         children: [
-          {
-            value: "1-1-1",
-            label: "需求说明文档.docx",
-          },
+          { id: 10, label: "ER图文档.xlsx", type: "excel" },
+          { id: 11, label: "表结构文档.pdf", type: "ppt" },
         ],
       },
     ],
   },
   {
-    value: "2",
-    label: "说明文档",
+    id: 12,
+    label: "管理文档",
     children: [
-      {
-        value: "2-1",
-        label: "功能说明文档",
-        children: [
-          {
-            value: "2-1-1",
-            label: "软件说明文档.docx",
-          },
-        ],
-      },
-      {
-        value: "2-2",
-        label: "需求说明文档",
-        children: [
-          {
-            value: "2-2-1",
-            label: "软件需求说明文档.docx",
-          },
-        ],
-      },
+      { id: 13, label: "会议纪要文档.docx", type: "word" },
+      { id: 14, label: "风险评估文档.pdf", type: "ppt" },
+      { id: 15, label: "进度报告文档.docx", type: "word" },
     ],
   },
   {
-    value: "3",
-    label: "测试用例",
+    id: 16,
+    label: "用户文档",
     children: [
-      {
-        value: "3-1",
-        label: "软件测试",
-        children: [
-          {
-            value: "3-1-1",
-            label: "需求测试文档.docx",
-          },
-        ],
-      },
-      {
-        value: "3-2",
-        label: "功能测试",
-        children: [
-          {
-            value: "3-2-1",
-            label: "功能测试文档.docx",
-          },
-        ],
-      },
+      { id: 17, label: "用户手册文档.docx", type: "word" },
+      { id: 18, label: "安装指南文档.xlsx", type: "excel" },
+      { id: 19, label: "FAQ文档.docx", type: "word" },
+      { id: 20, label: "更新日志文档.pdf", type: "ppt" },
     ],
   },
 ];
@@ -191,18 +168,30 @@ const treeSelectData = [
 // 文件夹目录
 const folderTreeData = [
   {
-    value: "1",
+    id: 1,
     label: "项目文档",
+    children: [],
+  },
+  {
+    id: 5,
+    label: "技术文档",
     children: [
       {
-        value: "1-1",
-        label: "软件需求",
+        id: 9,
+        label: "数据库文档",
+        children: [],
       },
     ],
   },
   {
-    value: "2",
-    label: "测试报告",
+    id: 12,
+    label: "管理文档",
+    children: [],
+  },
+  {
+    id: 16,
+    label: "用户文档",
+    children: [],
   },
 ];
 
