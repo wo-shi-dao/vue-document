@@ -4,6 +4,7 @@
       ref="categorySearchRef"
       v-model:selected-tags="selectedTags"
       :category="categoryConfig"
+      :extend-config="extendConfig"
       @search="onSearch"
     >
       <!-- 动态生成自定义字段的下拉菜单插槽 -->
@@ -75,6 +76,11 @@ const customFields = computed(() => {
 });
 
 const selectedTags = ref([]);
+
+const extendConfig = reactive({
+  show: true,
+  save: false,
+});
 
 watch(
   () => props.modelValue,
