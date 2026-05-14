@@ -55,7 +55,13 @@
         </el-form-item>
       </div>
 
-      <el-form-item label="基线版本" prop="baselineVersion">
+      <el-form-item
+        label="基线版本"
+        prop="baselineVersion"
+        :rules="[
+          { required: true, message: '请选择基线版本', trigger: 'change' },
+        ]"
+      >
         <el-select v-model="formData.baselineVersion" placeholder="请选择">
           <el-option
             v-for="item in basicOptions"
