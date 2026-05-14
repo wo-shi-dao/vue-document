@@ -13,7 +13,7 @@
       :on-change="handleFileChange"
       :on-remove="handleFileRemove"
       :file-list="fileList"
-      accept=".doc,.docx,.xls,.xlsx,.pdf"
+      accept=".doc,.docx"
       multiple
       drag
       style="margin-bottom: 10px"
@@ -21,7 +21,7 @@
     >
       <el-icon class="el-icon--upload"><upload-filled /></el-icon>
       <div class="el-upload__text">点击或拖拽文件到此处上传</div>
-      <div class="upload_text_tip">支持 .doc, .docx, .xls, .xlsx, .pdf 格式</div>
+      <div class="upload_text_tip">支持 .doc, .docx 格式</div>
     </el-upload>
 
     
