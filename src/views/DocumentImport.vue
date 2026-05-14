@@ -8,28 +8,22 @@
       <h1 class="title">文档导入</h1>
     </div> -->
 
-    <!-- 筛选条件 -->
-    <!-- <BaseDataSearchForm
-      :formItems="formItems"
-      :searchForm="searchForm"
-      @search="handleSearch"
-      span="3"
-    /> -->
-
     <div class="table-head">
-          <el-button
-            type="primary"
-            @click="handleShowImportDialog"
-          >
-            导入
-          </el-button>
-          <d-category-search
+      <el-button
+        class="table-head-button"
+        type="primary"
+        @click="handleShowImportDialog"
+      >
+        导入
+      </el-button>
+      <DateTimeRangeFilter />
+          <!-- <d-category-search
             class="head-search"
             :category="category"
             placeholder="请输入关键字，按Enter键搜索"
             @selectedTagsChange="onSelectedTagsChange"
           >
-          </d-category-search>
+          </d-category-search> -->
         </div>
 
 
@@ -162,6 +156,7 @@ import BaseDataSearchForm from "@/components/BasicDataSearchForm/index.vue";
 import DocumentImportDialog from '../components/DocumentImportDialog.vue';
 import { getImportHistory, parseImportFiles, getImportDetail, confirmImport, cancelImport, submitParseFile, getParseProgress } from '../api/document';
 import { POBrowser } from "js-pageoffice";
+import DateTimeRangeFilter from "../components/DateTimeRangeFilter.vue";
 
 const loading = ref(false);
 const importList = ref([]);
@@ -406,14 +401,18 @@ const setParseProgress = () => {
   progressStatus.value = "";
 };
 
+const generateUniqueId = () => {
+  return Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+};
+
 const handleStartImport = async (params) => {
   const { fileList } = params;
 
   // TODO 删除
   if ("1" == "1") {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    const taskId = crypto.randomUUID();
-    const docId = crypto.randomUUID();
+    const taskId = generateUniqueId();
+    const docId = generateUniqueId();
 
     // TODO 删除
     addData.value = [];
@@ -716,12 +715,12 @@ const handleCancelImport = async () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page-nav {
   background: #fff;
-  height: 32px;
+  height: 35px;
   font-size: 14px;
-  padding: 0 16px;
+  padding: 5px 16px;
   line-height: 32px;
 }
 
@@ -731,7 +730,7 @@ const handleCancelImport = async () => {
 .document-import-container {
   padding: 20px;
   background-color: #f3f3f3;
-  height: calc(100vh - 92px);
+  height: calc(100vh - 85px);
 }
 
 .header {
@@ -861,7 +860,7 @@ const handleCancelImport = async () => {
   margin-bottom: 10px;
 
   .table-head-button {
-    margin-left: 12px;
+    margin-right: 12px;
   }
 
   .head-search {

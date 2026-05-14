@@ -466,9 +466,9 @@ const handleStartInit = async () => {
 
 .page-nav {
   background: #fff;
-  height: 32px;
+  height: 35px;
   font-size: 14px;
-  padding: 0 16px;
+  padding: 5px 16px;
   line-height: 32px;
 
   .nav-firstTitle {

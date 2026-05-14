@@ -70,7 +70,7 @@ const openCreateDoc = () => {
 <style lang="scss" scoped>
 .document-management-container {
   background-color: #f3f3f3;
-  min-height: calc(100vh - 92px);
+  min-height: calc(100vh - 85px);
 }
 
 .content-tabs :deep(.devui-tabs__nav) {
@@ -90,9 +90,9 @@ const openCreateDoc = () => {
 
 .page-nav {
   background: #fff;
-  height: 32px;
+  height: 35px;
   font-size: 14px;
-  padding: 0 16px;
+  padding: 5px 16px;
   line-height: 32px;
 
   .nav-firstTitle {

@@ -27,13 +27,31 @@
       <!-- 右侧区域 -->
       <div class="right-panel">
         <div v-if="!showDetail" class="panel-mul">
-          <h3 style="margin:0 0 10px">需求条目</h3>
-          <div style="display:flex;gap:10px;margin-bottom:10px">
-            <span style="color:#A864C7;background:#f9f2ff;padding:0 4px;border-radius:3px">IR: {{ count.ir }}</span>
-            <span style="color:#4D85FF;background:#f2f7ff;padding:0 4px;border-radius:3px">SR: {{ count.sr }}</span>
-            <span style="color:#3CB371;background:#f2fff5;padding:0 4px;border-radius:3px">AR: {{ count.ar }}</span>
+          <div style="display: flex; align-items: center; gap: 10px; margin: 0 0 10px;">
+            <h3 style="margin:0; padding-right: 10px;">需求条目</h3>
+            <span>
+              <span style="padding-left: 10px;">类型: <span class="type-desc" :class="`type-desc-${activeType.name.toLowerCase()}`">{{ activeType.name }}</span></span>
+              <span style="padding-left: 10px;">数量: <span class="type-desc" :class="`type-desc-${activeType.name.toLowerCase()}`">{{ activeType.total }}</span></span>
+            </span>
+
           </div>
           <el-input v-model="searchKey" placeholder="搜索需求" clearable class="search-input" />
+        </div>
+
+        <!-- 分页组件 → 放在列表上方 -->
+        <div v-if="!showDetail" class="pagination-wrap">
+          <el-pagination
+            size="small"
+            background
+            v-model:current-page="pagination.currentPage"
+            v-model:page-size="pagination.pageSize"
+            :total="pagination.total"
+            :page-sizes="[10, 20, 30]"
+            layout="prev, pager, next, total, sizes"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            class="only-current"
+          />
         </div>
 
         <div class="panel-list" v-if="!showDetail" @scroll="handleListScroll">
@@ -45,9 +63,10 @@
             :class="{ active: selectedDemand?.id === item.id }"
           >
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span v-if="item.type==='IR'" style="background:#f9f2ff;color:#A864C7;padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span>
+              <!-- <span v-if="item.type==='IR'" style="background:#f9f2ff;color:#A864C7;padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span>
               <span v-if="item.type==='SR'" style="background:#f2f7ff;color:#4D85FF;padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span>
-              <span v-if="item.type==='AR'" style="background:#f2fff5;color:#3CB371;padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span>
+              <span v-if="item.type==='AR'" style="background:#f2fff5;color:#3CB371;padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span> -->
+              <span :class="`type-desc-${item.type.toLowerCase()}`" style="padding:0 4px;font-size:12px;border-radius:3px">{{ item.type }}</span>
               <span style="font-weight:bold">{{ item.code }}</span>
             </div>
             <div style="padding-left:30px">{{ item.name }}</div>
@@ -58,7 +77,6 @@
         </div>
 
         
-
         <!-- 展示详情 -->
         <div v-if="showDetail" class="detail-view">
           <div class="detail-header">
@@ -66,18 +84,25 @@
             <span class="back-btn" @click="showDetail = false">← 返回</span>
           </div>
           <div class="detail-body">
-            <div class="detail-row"><label>名称：</label><span>{{ currentDetail?.name }}</span></div>
+            <div class="detail-row"><label>标题：</label><span>{{ currentDetail?.name }}</span></div>
             <div class="detail-row"><label>来源：</label><span>{{ currentDetail?.source || '无' }}</span></div>
             <!-- <div class="detail-row"><label>内容：</label><div v-html="currentDetail?.description"></div></div> -->
-            <div class="detail-row"><label>内容：</label>
-              <!-- <div v-html="currentDetail?.description"></div> -->
-              <!-- <d-md-render :content="currentDetail?.description" :md-rules="mdRules" base-url="https://test-base-url"></d-md-render> -->
-              <d-md-render 
-                :content="currentDetail?.description || ''" 
-              ></d-md-render>
+
+            <div class="detail-row"><label>描述：</label>
+              <span >
+                <d-md-render mode="readonly"
+                  :content="currentDetail?.description || ''" 
+                ></d-md-render>
+              </span>
             </div>
-            <div class="detail-row"><label>说明：</label><span>{{ currentDetail?.remark || '无' }}</span></div>
-            <div class="detail-row"><label>补充：</label><span>{{ currentDetail?.desc || '无' }}</span></div>
+            <!-- <div class="detail-row"><label>说明：</label><span>{{ currentDetail?.remark || '无' }}</span></div>
+            <div class="detail-row"><label>补充：</label><span>{{ currentDetail?.desc || '无' }}</span></div> -->
+            <div class="detail-row"><label>AA：</label>
+  <span >
+              <d-md-render :content="currentDetail?.description" :md-rules="mdRules" ></d-md-render>
+              </span>
+            </div>
+
           </div>
         </div>
       </div>
@@ -86,12 +111,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch} from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, reactive} from 'vue'
 import request from "../../utils/request";
 
-// ======================
-// 你原版 100% 好用的拖拽变量
-// ======================
 let isDragging = false
 const poHtmlCode = ref('')
 const open_params = ref({})
@@ -128,17 +150,29 @@ const mockDemandList = ref([
     source: '客户反馈',
     desc: '跨设备状态同步',
     remark: '优先级：高',
-    description: "<p>【需求背景】</p><p>实时监控硬线本级主断状态</p><p><br></p><p>【需求价值】</p><p><br></p><p>【需求详情】</p><p>支持状态采集、异常上报、日志记录</p>" },
+    description: "<p>【需求背景】</p><p><table><tr><th>姓名</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th></tr><tr><td>小明</td><td>20</td></tr><tr><td>小红</td><td>19</td></tr></table></p>"
+    +"<p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p>"
+    + '<p>测试</p><p><img src="data:image/jpeg;base64,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" alt="" data-href="" style=""/></p><p><br></p>'
+
+    //  + "<h3>1. 一元二次方程求根公式</h3><p>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</p>"
+    //  + "<h3>1. 一元二次方程求根公式2</h3><p>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</p>"
+   },
+
   { id: 33, code: 'IRD555A-AAA-DDD-NI.2103', name: '硬线单的级主断状态', type: 'IR',
     source: '客户反馈',
     desc: '跨设备状态同步',
     remark: '优先级：高',
     description: "<p>【需求背景】</p><p>实时监控硬线本级主断状态</p><p><br></p><p>【需求价值】</p><p><br></p><p>【需求详情】</p><p>支持状态采集、异常上报、日志记录</p>" },
-  { id: 34, code: 'IRD555A-AAA-DDD-NI.2103', name: '硬线单的级主断状态', type: 'IR',
+  { id: 34, code: 'IRD555A-AAA-DDD-NI.21033', name: '硬线单的级主断状态', type: 'IR',
     source: '客户反馈',
     desc: '跨设备状态同步',
     remark: '优先级：高',
-    description: "<p>【需求背景】</p><p>实时监控硬线本级主断状态</p><p><br></p><p>【需求价值】</p><p><br></p><p>【需求详情】</p><p>支持状态采集、异常上报、日志记录</p>" },
+    description: "" 
+  + '<p>这是一段普通文字</p><p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAADxlEQVR42u3QMQEAAAwDoPuXf6lsXPQgggggIIOAAAAoBkXAAAAAElFTkSuQmCC" style="max-width:100%;height:auto"></p><p>这是流程图下面的文字</p>'
++ '<p>tt--</p><p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAYAAACAvzbMAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABhaVRYdFNuaXBNZXRhZGF0YQAAAAAAeyJjbGlwUG9pbnRzIjpbeyJ4IjowLCJ5IjowfSx7IngiOjQwMCwieSI6MH0seyJ4Ijo0MDAsInkiOjQwMH0seyJ4IjowLCJ5Ijo0MDB9XX1sI+iQAAAA/0lEQVR4nO3dMQ6AIAwF0E7G+1/KyZgYF5B+KB1MfMtLq1AoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAolN+6AdH1GHhTQwEVAAAAAElFTkSuQmCC" alt="流程图" style="max-width:100%;" /></p>' 
++ '<p><img src="https://picsum.photos/200/150" alt="测试图片"></p>'
++ '<p>测试</p><p><img src="data:image/jpeg;base64,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" alt="" data-href="" style=""/></p><p><br></p>'
+},
   { id: 35, code: 'IRD555A-AAA-DDD-NI.2104', name: '硬线单的级主断状态', type: 'IR',
     source: '客户反馈',
     desc: '跨设备状态同步',
@@ -157,28 +191,23 @@ const mockDemandList = ref([
 
 ])
 
-
-// 分页全局配置
-const pageSize = 20
+// 分页状态
 const loading = ref(false)
 const searchFinished = ref(false)
 
-// 普通列表 分页状态
-const normalList = ref([])
-const normalPage = ref(1)
-const normalHasMore = ref(true)
-
-// 搜索列表 分页状态
-const searchList = ref([])
-const searchPage = ref(1)
-const searchHasMore = ref(true)
+const pagination = reactive({
+  currentPage: 1,
+  size: 10,
+  total: 0
+});
+const showList = ref([])
+const typeName = ref('')
+const activeType = reactive({
+  name: '',
+  total: 0
+});
 
 let searchTimer = null
-
-const showList = computed(() => {
-  return searchKey.value.trim() ? searchList.value : normalList.value
-})
-
 
 const count = computed(() => ({
   ir: mockDemandList.value.filter(i => i.type === 'IR').length,
@@ -186,122 +215,97 @@ const count = computed(() => ({
   ar: mockDemandList.value.filter(i => i.type === 'AR').length
 }))
 
-// 1. 普通列表分页
-const getNormalPageData = async (page) => {
-  // TODO 后续换成后端真实分页接口
-  // const res = await request.get('/api/demand/list', { params: { page, pageSize } })
-  // return res.data.records || []
-
-  // mock 模拟分页
-  const start = (page - 1) * pageSize
-  const end = start + pageSize
-  return mockDemandList.value.slice(start, end)
-}
-
-// 2. 搜索列表分页
-const getSearchPageData = async (page, kw) => {
-  // TODO 后续换成后端真实搜索分页接口
-  // const res = await request.get('/api/demand/list', { params: { page, pageSize, keyword: kw } })
-  // return res.data.records || []
-
-  // mock 模拟搜索+分页
-  const filterAll = mockDemandList.value.filter(i =>
-    i.code.includes(kw) || i.name.includes(kw)
-  )
-  const start = (page - 1) * pageSize
-  const end = start + pageSize
-  return filterAll.slice(start, end)
-}
-
-// 加载普通列表第一页 / 加载更多
-const loadNormalData = async () => {
-  const items = await getNormalPageData(normalPage.value)
-  if (items.length) {
-    normalList.value.push(...items)
-    normalPage.value++
-  } else {
-    normalHasMore.value = false
-  }
-}
-
-// ==============================
-// 加载搜索列表第一页 / 加载更多
-// ==============================
-const loadSearchData = async (page) => {
+const fetchPageData = async () => {
+  loading.value = true
+  searchFinished.value = false
+  showList.value = []
   const kw = searchKey.value.trim()
-  const items = await getSearchPageData(page, kw)
-  if (items.length) {
-    searchList.value.push(...items)
-    searchPage.value++
-  } else {
-    searchHasMore.value = false
+
+
+  try {
+
+    // TODO 删除
+    if ("1" == "1") {
+      // -------- Mock 本地模拟 --------
+      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟 300ms 网络延迟
+      let allList = [...mockDemandList.value]
+      if (kw) {
+        allList = allList.filter(item =>
+          item.code.includes(kw) || item.name.includes(kw)
+        )
+      }
+      pagination.total = allList.length
+      const start = (pagination.currentPage - 1) * pagination.size
+      const end = start + pagination.size
+      showList.value = allList.slice(start, end)
+      activeType.name = showList.value[0]?.type || '';
+      activeType.total = showList.value.length
+
+      return;
+    }
+
+
+
+    const res = await request.get('/api/demand/list', {
+      params: {
+        page: pagination.currentPage,
+        pageSize: pagination.size,
+        keyword: kw
+      }
+    })
+    showList.value = res.data.records || []
+    pagination.total = res.data.total || 0
+
+    activeType.name = showList.value[0]?.type || '';
+    activeType.total = showList.value.length;
+    
+
+  } catch (err) {
+
+    ElMessage.error('获取列表失败')
+    
+    activeType.name = '';
+    activeType.total = 0;
+
+  } finally {
+    loading.value = false
+    searchFinished.value = true
   }
 }
 
-// 搜索防抖 逻辑不变
+// 分页事件
+const handleCurrentChange = (val) => {
+  pagination.currentPage = val
+  fetchPageData()
+}
+
+const handleSizeChange = (val) => {
+  pagination.size = val
+  pagination.currentPage = 1
+  fetchPageData()
+}
+
+// 搜索防抖
 watch(searchKey, () => {
   if (searchTimer) clearTimeout(searchTimer)
-  const kw = searchKey.value.trim()
-  if (!kw) {
-    resetToNormal()
-    return
-  }
-  searchFinished.value = false
-
-  searchList.value = []
-  searchPage.value = 1
-  searchHasMore.value = true
-  loading.value = true
+  pagination.currentPage = 1 // 搜索重置页码
   searchTimer = setTimeout(() => {
-    startSearch()
+    fetchPageData()
   }, 500)
 })
-
-const startSearch = async () => {
-  // 搜索默认加载第一页
-  await loadSearchData(1)
-  loading.value = false
-  searchFinished.value = true
-}
-
-// 滚动加载 适配分页
-const handleListScroll = async (e) => {
-  const el = e.target
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-    if (loading.value) return
-    loading.value = true
-    if (searchKey.value.trim()) {
-      if (searchHasMore.value) await loadSearchData(searchPage.value)
-    } else {
-      if (normalHasMore.value) await loadNormalData()
-    }
-    loading.value = false
-  }
-}
-
-// 重置
-const resetToNormal = () => {
-  normalList.value = []
-  normalPage.value = 1
-  normalHasMore.value = true
-  searchList.value = []
-  searchFinished.value = false
-  loading.value = false;
-  loadNormalData()
-}
 
 // 点击条目 右侧展示
 const selectDemand = (item) => {
   selectedDemand.value = item
   currentDetail.value = item
   showDetail.value = true
-  
+  console.log("ttt--" + currentDetail.value.description)
+
   try {
     pageofficectrl.word.HomeKey(6);
-  // pageofficectrl.word.FindNextText(item.code)
     if (pageofficectrl.word.FindNextText(item.code)) {
     } else {
-    // alert("未搜索到位置。");
+      // alert("未搜索到位置。");
     }
   } catch (e) {
   }
@@ -338,9 +342,6 @@ const stopDrag = () => {
   pageofficectrl.Enabled = true;
 }
 
-// ======================
-// 原有功能不变
-// ======================
 const doClose = (params) => {
   window.CallParentFunc({
     funcName: 'onPageOfficeClosed', paramJson: params,
@@ -348,6 +349,10 @@ const doClose = (params) => {
     error: () => pageofficectrl.CloseWindow(true)
   })
 }
+
+const generateUniqueId = () => {
+  return Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+};
 
 const handleConfirmClick = async () => {
   
@@ -357,7 +362,7 @@ const handleConfirmClick = async () => {
     // 模拟接口延迟
     await new Promise(resolve => setTimeout(resolve, 300))
 
-    const newTaskId = crypto.randomUUID()
+    const newTaskId = generateUniqueId()
     doClose(JSON.stringify({ taskId: newTaskId }))
     return
   }
@@ -407,11 +412,7 @@ onMounted(async() => {
   
   docId.value = open_params.value.docId;
 
-  // TODO 接口好了打开这个
-  // await fetchDemandList()
-  // TODO 删除
-  // demandList.value = mockDemandList.value
-  await loadNormalData()
+  fetchPageData()
 
   window.POPageMounted = { OnPageOfficeCtrlInit, AfterDocumentOpened }
 
@@ -433,7 +434,7 @@ function openFile() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .container-wrap {
   width: 100%;
   height: 100vh;
@@ -524,7 +525,7 @@ function openFile() {
   flex-direction: column;
   overflow: hidden;
 }
-.panel-mul { height: 118px; padding-top: 10px; }
+.panel-mul { height: 80px; padding-top: 10px; }
 .panel-list { flex: 1; overflow-y: auto; }
 
 .search-input {
@@ -539,7 +540,8 @@ function openFile() {
 .search-input:focus { border-color: #409eff; } */
 
 .demand-item {
-  padding: 10px; margin-bottom: 8px; background: #fff; border-radius: 6px;
+  padding: 10px 10px 5px 10px;
+  margin-bottom: 6px; background: #fff; border-radius: 6px;
   cursor: pointer; border: 1px solid transparent; transition: all 0.2s ease; font-size: 14px;
 }
 .demand-item:hover { border-color: #e4e7ed; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); }
@@ -578,5 +580,48 @@ function openFile() {
   padding: 10px;
   color: #999;
   font-size: 13px;
+}
+
+.pagination-wrap {
+  padding: 8px 0;
+  display: flex;
+  justify-content: left;
+  background: #f5f5f5;
+}
+.only-current :deep(.el-pager li:not(.is-active)) {
+  display: none;
+}
+.el-pagination :deep(.btn-next .el-icon) {
+  font-size: 14px;
+}
+.el-pagination :deep(.btn-prev .el-icon) {
+    font-size: 14px;
+}
+.el-pagination :deep(.btn-prev) {
+    background-color: #fffdfd !important;
+}
+.el-pagination :deep(.btn-next) {
+    background-color: #fffdfd !important;
+}
+.el-pagination :deep(.el-pager li.is-active) {
+    background-color: #fffdfd ;
+    color: #5e7ce0;
+}
+
+.type-desc {
+  padding:2px 4px;border-radius:3px;
+}
+.type-desc-ir {
+  color:#A864C7;background:#f9f2ff;
+}
+.type-desc-sr {
+  color:#4D85FF;background:#f2f7ff;
+}
+.type-desc-ar {
+  color:#3CB371;background:#f2fff5;
+}
+.dp-editor-md-preview-container {
+  border: 1px solid #ccc;
+  max-height: 1000px;
 }
 </style>

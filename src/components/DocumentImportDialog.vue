@@ -3,7 +3,8 @@
   <el-dialog
     v-model="visible"
     title="导入文档"
-    width="800px"
+    width="700px"
+    top="10vh"
     :close-on-click-modal="false"
   >
     <el-upload
@@ -30,7 +31,7 @@
         已选择 <span style="font-weight: 600; color: #303133;">{{ showFileList.length }}</span> 个文件
       </div>
       
-      <el-table :data="showFileList" border row-key="uid"  max-height="235" class="no-shadow-table">
+      <el-table :data="showFileList" border row-key="uid"  max-height="290" class="no-shadow-table">
         <el-table-column label="文件名称" min-width="250">
           <template #default="{ row }">
             <span>{{ row.name }}</span>
@@ -47,7 +48,7 @@
           <template #default="{ row }">
             <el-select
               v-model="row.dept"
-              placeholder="请选择部门"
+              placeholder="请选择"
               style="width: 100%"
               clearable
               :loading="deptLoading"
@@ -62,7 +63,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column width="180">
+        <el-table-column width="120">
           <template #header>
             <span>
               <span style="color: red;">*</span>
@@ -72,7 +73,7 @@
           <template #default="{ row }">
             <el-select
               v-model="row.fileType"
-              placeholder="请选择类型"
+              placeholder="请选择"
               style="width: 100%"
               clearable
               :loading="typeLoading"
@@ -348,14 +349,20 @@ const handleStartParse = () => {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .upload_text_tip {
   color: #9fa6b1;
-  padding-top: 10px;
+  padding-top: 2px;
 }
 .el-table.no-shadow-table {
   border-radius: 0 ;
   box-shadow: none;
 }
-
+:deep(.el-upload-dragger) {
+  padding: 20px 10px;
+}
+.el-icon--upload {
+  margin-bottom: 6px;
+  font-size: 50px;
+}
 </style>
