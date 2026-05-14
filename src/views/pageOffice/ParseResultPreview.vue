@@ -97,11 +97,6 @@
             </div>
             <!-- <div class="detail-row"><label>说明：</label><span>{{ currentDetail?.remark || '无' }}</span></div>
             <div class="detail-row"><label>补充：</label><span>{{ currentDetail?.desc || '无' }}</span></div> -->
-            <div class="detail-row"><label>AA：</label>
-  <span >
-              <d-md-render :content="currentDetail?.description" :md-rules="mdRules" ></d-md-render>
-              </span>
-            </div>
 
           </div>
         </div>
