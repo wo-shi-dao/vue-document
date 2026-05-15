@@ -82,7 +82,6 @@
                 上传
               </el-button>
               <el-button
-                v-if="!row?.children?.length"
                 link
                 type="danger"
                 @click="handleDeleteFolder(row)"
@@ -235,13 +234,7 @@ import { POBrowser } from "js-pageoffice";
 import DateTimeRangeFilter from "./DateTimeRangeFilter.vue";
 import zhCn from "element-plus/es/locale/lang/zh-cn";
 import {
-  getDocumentList,
-  deleteDocument,
   downloadDocument,
-  renameDocument,
-  addFolder,
-  deleteFolder,
-  renameFolder,
 } from "../api/document";
 
 // Props
@@ -803,20 +796,88 @@ const handlePageChange = () => {
   loadDocumentList();
 };
 
-// 新建文件夹
 const handleCreateFolder = () => {
   folderForm.name = "";
   folderForm.parentId = "";
+  updateFolderTreeData();
   showAddFolderDialog.value = true;
+};
+
+const updateFolderTreeData = () => {
+  const buildTree = (items) => {
+    return items
+      .filter(item => item.isFolder)
+      .map(item => ({
+        value: item.id,
+        label: item.name,
+        children: item.children ? buildTree(item.children) : undefined
+      }));
+  };
+  
+  folderTreeData.value = buildTree(documentList.value);
+};
+
+const generateId = () => {
+  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 };
 
 const handleAddFolder = async () => {
   try {
     await folderFormRef.value.validate();
-    await addFolder(folderForm.name);
+    
+    const newFolder = {
+      id: generateId(),
+      name: folderForm.name,
+      isFolder: true,
+      creator: "当前用户",
+      createTime: new Date().toLocaleString('zh-CN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+      }).replace(/\//g, '-'),
+      modifier: "当前用户",
+      modifyTime: new Date().toLocaleString('zh-CN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+      }).replace(/\//g, '-'),
+      children: []
+    };
+
+    if (folderForm.parentId) {
+      const addToFolder = (items, parentId, newFolder) => {
+        for (let item of items) {
+          if (item.id === parentId && item.isFolder) {
+            if (!item.children) {
+              item.children = [];
+            }
+            item.children.push(newFolder);
+            return true;
+          }
+          if (item.children && addToFolder(item.children, parentId, newFolder)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      addToFolder(documentList.value, folderForm.parentId, newFolder);
+    } else {
+      documentList.value.push(newFolder);
+    }
+    
+    pagination.total = documentList.value.length;
+    
     ElMessage.success("新增成功");
     showAddFolderDialog.value = false;
-    loadDocumentList();
   } catch (error) {
     if (error !== false) {
       ElMessage.error("新增失败");
@@ -842,14 +903,39 @@ const handleRenameDocument = (row) => {
 const handleConfirmRename = async () => {
   try {
     await renameFormRef.value.validate();
-    if (renameForm.isFolder) {
-      await renameFolder(renameForm.id, renameForm.name);
-    } else {
-      await renameDocument(renameForm.id, renameForm.name);
-    }
+    
+    const findAndRename = (items, id, newName, isFolder) => {
+      for (let item of items) {
+        if (item.id === id) {
+          if (isFolder) {
+            item.name = newName;
+          } else {
+            const ext = item.name.match(/\.[^/.]+$/);
+            item.name = newName + (ext ? ext[0] : '');
+          }
+          item.modifier = "当前用户";
+          item.modifyTime = new Date().toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: false 
+          }).replace(/\//g, '-');
+          return true;
+        }
+        if (item.children && findAndRename(item.children, id, newName, isFolder)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    findAndRename(documentList.value, renameForm.id, renameForm.name, renameForm.isFolder);
+    
     ElMessage.success("修改成功");
     showRenameDialog.value = false;
-    loadDocumentList();
   } catch (error) {
     if (error !== false) {
       ElMessage.error("修改失败");
@@ -860,14 +946,34 @@ const handleConfirmRename = async () => {
 // 删除
 const handleDeleteFolder = async (row) => {
   try {
-    await ElMessageBox.confirm("是否删除该文件夹?", "提示", {
+    const hasChildren = row.children && row.children.length > 0;
+    const message = hasChildren 
+      ? "该文件夹下有文件或子文件夹,删除后将一并删除,是否继续?" 
+      : "是否删除该文件夹?";
+      
+    await ElMessageBox.confirm(message, "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
     });
-    await deleteFolder(row.id);
+    
+    const findAndDelete = (items, id) => {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].id === id) {
+          items.splice(i, 1);
+          return true;
+        }
+        if (items[i].children && findAndDelete(items[i].children, id)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    findAndDelete(documentList.value, row.id);
+    pagination.total = documentList.value.length;
+    
     ElMessage.success("删除成功");
-    loadDocumentList();
   } catch (error) {
     if (error !== "cancel") {
       ElMessage.error("删除失败");
@@ -882,9 +988,24 @@ const handleDeleteDocument = async (row) => {
       cancelButtonText: "取消",
       type: "warning",
     });
-    await deleteDocument(row.id);
+    
+    const findAndDelete = (items, id) => {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].id === id) {
+          items.splice(i, 1);
+          return true;
+        }
+        if (items[i].children && findAndDelete(items[i].children, id)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    findAndDelete(documentList.value, row.id);
+    pagination.total = documentList.value.length;
+    
     ElMessage.success("删除成功");
-    loadDocumentList();
   } catch (error) {
     if (error !== "cancel") {
       ElMessage.error("删除失败");
