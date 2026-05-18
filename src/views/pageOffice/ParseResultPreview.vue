@@ -70,7 +70,7 @@
               <span :class="`item-type-desc-${item.category.toLowerCase()}`" class="item-type-desc">{{ item.category }}</span>
               <span style="font-weight:bold">{{ item.code }}</span>
             </div>
-            <div style="padding-left:30px">{{ item.title }}</div>
+            <div style="padding-left:34px">{{ item.title }}</div>
           </div>
 
           <div class="load-tip" v-if="loading && showList.length == 0">加载中...</div>
@@ -99,17 +99,14 @@
             </div>
 
             <div class="detail-row"><label>描述：</label>
-              <span >
-                <d-md-render mode="readonly"
+              <div class="description-content">
+                <RichTextEditor 
                   :content="currentDetail?.description || ''" 
-                ></d-md-render>
-                <!-- <RichTextEditor 
-                :content="currentDetail.description" 
-                :readonly="true"
-              /> -->
-
-
-              </span>
+                  :readonly="true"
+                  height="auto"
+                  max-height="500px"
+                />
+              </div>
             </div>
             
             <div class="detail-row"><label>优先级：</label><span>{{ currentDetail?.priority || '' }}</span></div>
@@ -127,7 +124,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch, reactive, nextTick } from 'vue'
 import request from "../../utils/request";
-// import RichTextEditor from '../../components/RichTextEditor.vue'
+import RichTextEditor from '../../components/RichTextEditor.vue'
 
 let isDragging = false
 const poHtmlCode = ref('')
@@ -149,7 +146,11 @@ const mockDemandList = ref([
     desc: '实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。实现硬线本级主断状态实时采集与展示，支持状态异常告警。',
     remark: '需联调硬件接口，其他说明给给了，还嘻嘻嘻嘻嘻嘻嘻嘻嘻，对讲机家具哈哈哈哈哈哈',
     // description: "<p>【需求背景】</p><p>对对对等等等</p><p>【需求价值】</p><p>A</p><p>【需求详情】</p><p><br></p><p>上述需求对应的真值表如下：</p><p class='ql-align-center'><br></p><div class='quill-better-table-wrapper'><table class='quill-better-table' contenteditable='false' border='1' style='width: 300px;'><colgroup><col width='124' class='ql-align-center'><col width='105' class='ql-align-center'><col width='97' class='ql-align-center'></colgroup><tbody><tr id='focb'><td id='focb_gynu' rowspan='1' colspan='1'><div id='focb_gynu_1_1' class='ql-align-center'>CCU分主断求助</div></td><td id='focb_oxh0' rowspan='1' colspan='1'><div id='focb_oxh0_1_1' class='ql-align-center'>主断禁止环线</div></td><td id='focb_j8r3' rowspan='1' colspan='1'><div id='focb_j8r3_1_1' class='ql-align-center'>主断使能</div></td></tr><tr id='iqva'><td id='iqva_drwe' rowspan='1' colspan='1'><div id='iqva_drwe_1_1' class='ql-align-center'>0</div></td><td id='iqva_sq5n' rowspan='1' colspan='1'><div id='iqva_sq5n_1_1' class='ql-align-center'>无影响</div></td><td id='iqva_ysdj' rowspan='1' colspan='1'><div id='iqva_ysdj_1_1' class='ql-align-center'>无影响</div></td></tr><tr id='u8fi'><td id='u8fi_cbr5' rowspan='1' colspan='1'><div id='u8fi_cbr5_1_1' class='ql-align-center'>1</div></td><td id='u8fi_v7e8' rowspan='1' colspan='1'><div id='u8fi_v7e8_1_1' class='ql-align-center'>0</div></td><td id='u8fi_hltu' rowspan='1' colspan='1'><div id='u8fi_hltu_1_1' class='ql-align-center'>0x55</div></td></tr></tbody></table></div><p class='ql-align-center'><br></p><p><br></p>" 
-    description: "<p>【需求背景】</p><p>对对对等等等</p><p>【需求价值】</p><p>A</p><p>【需求详情】</p><p><br></p><p>上述需求对应的真值表如下：</p><p class='ql-align-center'><br></p><div class='quill-better-table-wrapper'><table class='quill-better-table' contenteditable='false' border='1' style='width: 500px;'><colgroup><col width='124'><col width='105'><col width='97'><col width='100'><col width='100'></colgroup><tbody><tr id='focb'><td id='focb_wpbs' rowspan='1' colspan='1'><div id='focb_wpbs_1_1' class='ql-align-center'>CCU分主断求助</div></td><td id='focb_h7ex' rowspan='1' colspan='1'><div id='focb_h7ex_1_1' class='ql-align-center'>主断禁止环线</div></td><td id='focb_fl7q' rowspan='1' colspan='1' class=''><div id='focb_fl7q_1_1' class='ql-align-center'>主断使能</div></td><td id='focb_ffkm' rowspan='1' colspan='1' class=''><div id='focb_ffkm_1_1'>说明</div></td><td id='focb_f8qy' rowspan='1' colspan='1' class=''><div id='focb_f8qy_1_1'>描述</div></td></tr><tr id='iqva'><td id='iqva_yx5n' rowspan='1' colspan='1'><div id='iqva_yx5n_1_1' class='ql-align-center'>0</div></td><td id='iqva_vjpz' rowspan='1' colspan='1'><div id='iqva_vjpz_1_1' class='ql-align-center'>无影响</div></td><td id='iqva_lijj' rowspan='1' colspan='1'><div id='iqva_lijj_1_1' class='ql-align-center'>无影响</div></td><td id='iqva_pw92' rowspan='1' colspan='1' class=''><div id='iqva_pw92_1_1'>他对对对</div></td><td id='iqva_gz4r' rowspan='1' colspan='1' class=''><div id='iqva_gz4r_1_1'>额度伏尔泰灌灌灌灌灌</div></td></tr><tr id='u8fi'><td id='u8fi_yyxk' rowspan='1' colspan='1'><div id='u8fi_yyxk_1_1' class='ql-align-center'>1</div></td><td id='u8fi_vub4' rowspan='1' colspan='1'><div id='u8fi_vub4_1_1' class='ql-align-center'>0</div></td><td id='u8fi_nqis' rowspan='1' colspan='1'><div id='u8fi_nqis_1_1' class='ql-align-center'>0x55</div></td><td id='u8fi_e0ha' rowspan='1' colspan='1' class=''><div id='u8fi_e0ha_1_1'>额打的费呃呃呃</div></td><td id='u8fi_k3kt' rowspan='1' colspan='1'  ><div id='u8fi_k3kt_1_1'>大发生的是的发生阿斯蒂芬阿斯蒂芬撒旦法</div></td></tr></tbody></table></div><p class='ql-align-center'><br></p>"
+    description: "<p>【需求背景】</p><p><table><tr><th>姓名</th><th>年龄</th><th>测试</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th></tr><tr><td>小明</td><td>20</td><td></td><<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>/tr><tr><td>小红</td><td>19</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></p>"
+    +"<p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p>"
+    + "<h3>1. 一元二次方程求根公式</h3><p>$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$</p>"
+    + "<h3>7. 化学反应</h3><p>$$\\mathrm{2H_2 + O_2 \\xrightarrow{点燃} 2H_2O}$$</p>"
+    + '<p>测试</p><p><img src="data:image/jpeg;base64,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" alt="" data-href="" style=""/></p><p><br></p>'
   },
   { id: 3, code: 'IRD555A-AAA-DDD-NI.214', title: '硬线单的级主断状态的点点滴滴ddd的点点滴滴', category: 'IR', priority: '中', trackingNumber: 'IRD555A-AAA-D-NI.214',
     source: '客户反馈个法人丰富的大多数是sssssssssssss顶顶顶顶地方大卫杜夫灌灌灌灌灌滴滴答答哒哒哒哒哒哒',
@@ -165,10 +166,7 @@ const mockDemandList = ref([
     source: '客户反馈',
     desc: '跨设备状态同步',
     remark: '优先级：高',
-    description: "<p>【需求背景】</p><p><table><tr><th>姓名</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th><th>年龄</th></tr><tr><td>小明</td><td>20</td></tr><tr><td>小红</td><td>19</td></tr></table></p>"
-    +"<p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p><p>【需求背景】</p>"
-    + '<p>测试</p><p><img src="data:image/jpeg;base64,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" alt="" data-href="" style=""/></p><p><br></p>'
-
+    description: "<p>【需求背景】</p><p>对对对等等等</p><p>【需求价值】</p><p>A</p><p>【需求详情】</p><p><br></p><p>上述需求对应的真值表如下：</p><p class='ql-align-center'><br></p><div class='quill-better-table-wrapper'><table class='quill-better-table' contenteditable='false' border='1' style='width: 500px;'><colgroup><col width='124'><col width='105'><col width='97'><col width='100'><col width='100'></colgroup><tbody><tr id='focb'><td id='focb_wpbs' rowspan='1' colspan='1'><div id='focb_wpbs_1_1' class='ql-align-center'>CCU分主断求助</div></td><td id='focb_h7ex' rowspan='1' colspan='1'><div id='focb_h7ex_1_1' class='ql-align-center'>主断禁止环线</div></td><td id='focb_fl7q' rowspan='1' colspan='1' class=''><div id='focb_fl7q_1_1' class='ql-align-center'>主断使能</div></td><td id='focb_ffkm' rowspan='1' colspan='1' class=''><div id='focb_ffkm_1_1'>说明</div></td><td id='focb_f8qy' rowspan='1' colspan='1' class=''><div id='focb_f8qy_1_1'>描述</div></td></tr><tr id='iqva'><td id='iqva_yx5n' rowspan='1' colspan='1'><div id='iqva_yx5n_1_1' class='ql-align-center'>0</div></td><td id='iqva_vjpz' rowspan='1' colspan='1'><div id='iqva_vjpz_1_1' class='ql-align-center'>无影响</div></td><td id='iqva_lijj' rowspan='1' colspan='1'><div id='iqva_lijj_1_1' class='ql-align-center'>无影响</div></td><td id='iqva_pw92' rowspan='1' colspan='1' class=''><div id='iqva_pw92_1_1'>他对对对</div></td><td id='iqva_gz4r' rowspan='1' colspan='1' class=''><div id='iqva_gz4r_1_1'>额度伏尔泰灌灌灌灌灌</div></td></tr><tr id='u8fi'><td id='u8fi_yyxk' rowspan='1' colspan='1'><div id='u8fi_yyxk_1_1' class='ql-align-center'>1</div></td><td id='u8fi_vub4' rowspan='1' colspan='1'><div id='u8fi_vub4_1_1' class='ql-align-center'>0</div></td><td id='u8fi_nqis' rowspan='1' colspan='1'><div id='u8fi_nqis_1_1' class='ql-align-center'>0x55</div></td><td id='u8fi_e0ha' rowspan='1' colspan='1' class=''><div id='u8fi_e0ha_1_1'>额打的费呃呃呃</div></td><td id='u8fi_k3kt' rowspan='1' colspan='1'  ><div id='u8fi_k3kt_1_1'>大发生的是的发生阿斯蒂芬阿斯蒂芬撒旦法</div></td></tr></tbody></table></div><p class='ql-align-center'><br></p>"
     //  + "<h3>1. 一元二次方程求根公式</h3><p>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</p>"
     //  + "<h3>1. 一元二次方程求根公式2</h3><p>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</p>"
    },
@@ -623,6 +621,65 @@ function openFile() {
 .detail-row span { 
   overflow-wrap: break-word;
   white-space: normal; 
+}
+
+/* 描述内容容器样式 */
+.description-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.description-content :deep(.rich-text-editor-wrapper) {
+  border: none;
+  background: transparent;
+}
+
+.description-content :deep(.editor-container) {
+  padding: 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* 描述内容中的图片样式 */
+.description-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.description-content :deep(img:hover) {
+  transform: scale(1.02);
+}
+
+/* 描述内容中的表格样式 */
+.description-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+.description-content :deep(table th),
+.description-content :deep(table td) {
+  border: 1px solid #e8e8e8;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.description-content :deep(table th) {
+  background-color: #fafafa;
+  font-weight: bold;
+}
+
+/* 描述内容中的列表样式 */
+.description-content :deep(ul),
+.description-content :deep(ol) {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+
+.description-content :deep(li) {
+  margin: 3px 0;
 }
 
 
